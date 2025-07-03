@@ -9,9 +9,9 @@ return {
   opts = {
     bigfile = { enabled = true },
     dashboard = { enabled = true },
+    image = { enabled = true },
     explorer = { enabled = true },
     input = { enabled = true },
-    lazygit = { enabled = true },
     terminal = { enabled = true },
     picker = { enabled = true },
     notifier = { enabled = true },

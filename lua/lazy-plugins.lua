@@ -22,7 +22,6 @@ require('lazy').setup({
 
   -- modular approach: using `require 'path.name'` will
   -- include a plugin definition from file lua/path/name.lua
-  --  require 'kickstart.plugins.dashboard',
 
   require 'kickstart.plugins.snacks',
 
@@ -58,7 +57,6 @@ require('lazy').setup({
 
   require 'kickstart.plugins.neo-tree',
 
-  --  require 'kickstart.plugins.neaterm',
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
