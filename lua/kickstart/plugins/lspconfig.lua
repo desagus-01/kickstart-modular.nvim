@@ -181,7 +181,13 @@ return {
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        basedpyright = {},
+        basedpyright = {
+          analysis = {
+            typeCheckingModel = 'recommended',
+            failOnWarning = false,
+            allowedUntypedLibraries = true,
+          },
+        },
         --ruff = {},
         rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
