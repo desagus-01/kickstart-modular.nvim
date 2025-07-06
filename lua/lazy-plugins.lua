@@ -8,6 +8,8 @@ require('lazy').setup({
 
   require 'kickstart.plugins.neorg',
 
+  require 'kickstart.plugins.render-markdown',
+
   require 'kickstart.plugins.snacks',
 
   require 'kickstart.plugins.barbar',
