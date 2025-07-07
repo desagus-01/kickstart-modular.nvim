@@ -71,4 +71,9 @@ vim.o.scrolloff = 10
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
+--- Tree-sitter powered folding 🌳
+vim.o.foldmethod = 'expr'
+vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.o.foldenable = true -- start with folds calculated
+vim.o.foldlevel = 99 -- but show them open by default
 -- vim: ts=2 sts=2 sw=2 et
