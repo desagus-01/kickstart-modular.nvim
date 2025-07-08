@@ -6,6 +6,10 @@ require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
 
+  require 'kickstart.plugins.copilot',
+
+  require 'kickstart.plugins.code-companion',
+
   require 'kickstart.plugins.neorg',
 
   require 'kickstart.plugins.render-markdown',
