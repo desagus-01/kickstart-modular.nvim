@@ -10,7 +10,6 @@ return {
     bigfile = { enabled = true },
     dashboard = { enabled = true },
     image = { enabled = true },
-    explorer = { enabled = true },
     input = { enabled = true },
     terminal = { enabled = true },
     picker = { enabled = true },
