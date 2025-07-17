@@ -13,6 +13,15 @@ return {
   opts = function(_, opts)
     -- Add your custom window mappings
     opts.filesystem = opts.filesystem or {}
+    opts.filesystem.filtered_items = {
+      visible = false,
+      hide_gitignored = true,
+      hide_dotfiles = false,
+      hide_by_name = {
+        '.github',
+      },
+      never_show = { '.git' },
+    } or {}
     opts.filesystem.window = opts.filesystem.window or {}
     opts.filesystem.window.mappings = opts.filesystem.window.mappings or {}
     opts.filesystem.window.mappings['\\'] = 'close_window'
