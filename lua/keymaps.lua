@@ -108,3 +108,16 @@ vim.keymap.set('v', 'ga', '<cmd>CodeCompanionChat Add<cr>', { noremap = true, si
 
 -- Expand 'cc' into 'CodeCompanion' in the command line
 vim.cmd [[cab cc CodeCompanion]]
+
+-- custom todo module
+--require 'custom_modules.floating_todo'
+
+local todo = require -- tiny alias so we don't type the full path twice
+
+vim.keymap.set('n', '<leader>oo', function()
+  todo('custom_modules.floating_todo').open()
+end, { desc = 'Open TODO list' })
+
+vim.keymap.set('n', '<leader>oa', function()
+  todo('custom_modules.floating_todo').append()
+end, { desc = 'Add to TODO list' })
