@@ -2,7 +2,7 @@ return {
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
-      require('mini.sessions').setup { autoread = true }
+      require('mini.sessions').setup { autowrite = true }
       require('mini.diff').setup()
       require('mini.ai').setup { n_lines = 500 }
       require('mini.surround').setup()
