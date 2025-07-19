@@ -1,6 +1,3 @@
--- Neo-tree is a Neovim plugin to browse the file system
--- https://github.com/nvim-neo-tree/neo-tree.nvim
-
 return {
   'folke/snacks.nvim',
   priority = 1000,
@@ -8,7 +5,23 @@ return {
   ---@type snacks.Config
   opts = {
     bigfile = { enabled = true },
-    dashboard = { enabled = true },
+    dashboard = {
+      enabled = true,
+      formats = {
+        key = function(item)
+          return { { '[', hl = 'special' }, { item.key, hl = 'key' }, { ']', hl = 'special' } }
+        end,
+      },
+      sections = {
+        { section = 'terminal', cmd = 'fortune -s | cowsay', hl = 'header', padding = 1, indent = 8 },
+        { title = 'Bookmarks', padding = 1 },
+        { section = 'keys', padding = 1 },
+        { title = 'Recent Files ', file = vim.fn.fnamemodify('.', ':~'), padding = 1 },
+        { section = 'recent_files', cwd = true, limit = 8, padding = 1 },
+        { title = 'Sessions', padding = 1 },
+        { section = 'projects', padding = 1 },
+      },
+    },
     image = { enabled = true },
     input = { enabled = true },
     terminal = { enabled = true },
