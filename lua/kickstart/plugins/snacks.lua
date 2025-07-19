@@ -13,7 +13,7 @@ return {
         end,
       },
       sections = {
-        { section = 'terminal', cmd = 'fortune -s | cowsay', hl = 'header', padding = 1, indent = 8 },
+        { section = 'terminal', cmd = 'fortune -s | cowsay', hl = 'header', padding = 3, indent = 8 },
         { title = 'Bookmarks', padding = 1 },
         { section = 'keys', padding = 1 },
         { title = 'Recent Files ', file = vim.fn.fnamemodify('.', ':~'), padding = 1 },
