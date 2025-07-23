@@ -20,6 +20,8 @@ return {
         { section = 'recent_files', cwd = true, limit = 8, padding = 1 },
         { title = 'Sessions', padding = 1 },
         { section = 'projects', padding = 1 },
+        { title = 'Git Status', icon = ' ', padding = 1 },
+        { section = 'terminal', cmd = 'git --no-pager diff --stat -B -M -C', padding = 1 },
       },
     },
     image = { enabled = true },
