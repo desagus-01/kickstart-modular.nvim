@@ -13,8 +13,6 @@ require('lazy').setup({
 
   require 'kickstart.plugins.code-companion',
 
-  require 'kickstart.plugins.neorg',
-
   require 'kickstart.plugins.render-markdown',
 
   require 'kickstart.plugins.snacks',
