@@ -133,3 +133,22 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     end
   end,
 })
+
+-- Complete todo
+vim.keymap.set('n', '<leader>xc', function()
+  local line = vim.api.nvim_get_current_line()
+  local new_line = line:gsub('(%s*%- %[%s*%])', ' - [X]')
+  vim.api.nvim_set_current_line(new_line)
+end, { desc = '[C]omplete TODO' })
+
+-- Create todo
+vim.keymap.set('n', '<leader>xa', function()
+  local line = vim.api.nvim_get_current_line()
+  local prefix = '> - [ ] '
+  local new_line = prefix .. line
+  vim.api.nvim_set_current_line(new_line)
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local col = new_line:find '%[ %]' + 8
+  vim.api.nvim_win_set_cursor(0, { row, col })
+  vim.cmd 'startinsert'
+end, { desc = '[A]dd TODO' })
