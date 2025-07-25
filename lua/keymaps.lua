@@ -115,3 +115,21 @@ end, { desc = 'Open TODO list' })
 vim.keymap.set('n', '<leader>oa', function()
   todo('custom_modules.floating_todo').append()
 end, { desc = 'Add to TODO list' })
+
+-- auto move todos in .md
+local todo = require 'custom_modules.move_todos'
+vim.api.nvim_create_augroup('AutoMoveTodosOnMarkdown', { clear = true })
+
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = 'AutoMoveTodosOnMarkdown',
+  pattern = '*.md',
+  callback = function()
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    for _, line in ipairs(lines) do
+      if line:match '> %[%!TODO%]' then
+        todo.move_completed_todos()
+        break
+      end
+    end
+  end,
+})
