@@ -1,5 +1,14 @@
 local M = {}
 
+local function is_in_todo_block(line)
+  if line:match '^> %[%!TODO%]' then
+    return true
+  elseif line:match '^> %[%!' then
+    return false
+  end
+  return nil
+end
+
 function M.move_completed_todos()
   local bufnr = vim.api.nvim_get_current_buf()
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -8,18 +17,14 @@ function M.move_completed_todos()
   local completed_lines = {}
   local in_todo_block = false
 
-  for _, line in ipairs(lines) do
-    if line:match '^> %[%!TODO%]' then
-      in_todo_block = true
-      table.insert(new_lines, line)
-    elseif line:match '^> %[%!' then
-      in_todo_block = false
+  for _, line in ipairs(lines) do -- loop all lines to check foe todo header
+    local block_state = is_in_todo_block(line)
+    if block_state ~= nil then
+      in_todo_block = block_state
       table.insert(new_lines, line)
     elseif in_todo_block then
-      -- strip leading > and whitespace before checking for completed todo
-      local cleaned = line:gsub('^%s*>%s*', '')
-      if cleaned:match '^%- %[X%]' then
-        table.insert(completed_lines, cleaned)
+      if line:match '^%s*>%s*%- %[X%]' then -- check inside todo block for completed
+        table.insert(completed_lines, line)
       else
         table.insert(new_lines, line)
       end
