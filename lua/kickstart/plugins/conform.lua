@@ -31,6 +31,10 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        hcl = { 'packer_fmt' },
+        terraform = { 'terraform_fmt' },
+        tf = { 'terraform_fmt' },
+        ['terraform_vars'] = { 'terraform_fmt' },
         -- Conform can also run multiple formatters sequentially
         python = { 'ruff_format', 'ruff_organize_imports' },
         --
