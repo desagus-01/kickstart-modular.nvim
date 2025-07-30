@@ -37,7 +37,7 @@ return {
         ['terraform_vars'] = { 'terraform_fmt' },
         -- Conform can also run multiple formatters sequentially
         python = { 'ruff_format', 'ruff_organize_imports' },
-        --
+        fish = { 'fish' },
       },
     },
   },
