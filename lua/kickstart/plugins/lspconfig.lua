@@ -215,6 +215,8 @@ return {
         },
 
         terraformls = {},
+        dockerls = {},
+        docker_compose_language_service = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -234,6 +236,7 @@ return {
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'tflint',
+        'hadolint',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 

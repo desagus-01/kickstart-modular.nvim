@@ -24,8 +24,9 @@ return {
           return nil
         else
           return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
+            timeout_ms = 3000,
+            quiet = false, -- not recommended to change
+            lsp_format = 'fallback', -- not recommended to change
           }
         end
       end,
@@ -37,7 +38,7 @@ return {
         ['terraform_vars'] = { 'terraform_fmt' },
         -- Conform can also run multiple formatters sequentially
         python = { 'ruff_format', 'ruff_organize_imports' },
-        fish = { 'fish' },
+        fish = { 'fish_indent' },
       },
     },
   },
