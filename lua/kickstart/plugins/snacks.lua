@@ -42,5 +42,6 @@ return {
     statuscolumn = { enabled = true },
     rename = { enabled = true },
     words = { enabled = true },
+    indent = { enabled = true },
   },
 }

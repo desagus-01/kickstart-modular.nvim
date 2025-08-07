@@ -34,10 +34,10 @@ local function classify_line(line, state)
   return 'other', line
 end
 
--- Loop through all lines and partition into new_lines and completed_lines
+-- Loop through all lines and partition into other_lines and completed_lines
 local function partition_lines(lines)
   local state = { in_todo_block = false }
-  local new_lines, completed_lines = {}, {}
+  local other_lines, completed_lines = {}, {}
 
   for _, line in ipairs(lines) do
     local kind, content = classify_line(line, state)
@@ -45,18 +45,18 @@ local function partition_lines(lines)
     if kind == 'completed_task' then
       table.insert(completed_lines, content)
     else
-      table.insert(new_lines, content)
+      table.insert(other_lines, content)
     end
   end
 
-  return new_lines, completed_lines
+  return other_lines, completed_lines
 end
 
 -- Insert completed tasks into the `## Completed` section or create one if not found
-local function inject_completed_tasks(new_lines, completed_lines)
+local function inject_completed_tasks(other_lines, completed_lines)
   local final_lines, inserted = {}, false
 
-  for _, line in ipairs(new_lines) do
+  for _, line in ipairs(other_lines) do
     table.insert(final_lines, line)
 
     if not inserted and line:match '^## Completed' then
@@ -79,8 +79,8 @@ function M.move_completed_todos()
   local bufnr = vim.api.nvim_get_current_buf()
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-  local new_lines, completed_lines = partition_lines(lines)
-  local final_lines = inject_completed_tasks(new_lines, completed_lines)
+  local other_lines, completed_lines = partition_lines(lines)
+  local final_lines = inject_completed_tasks(other_lines, completed_lines)
 
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, final_lines)
 end

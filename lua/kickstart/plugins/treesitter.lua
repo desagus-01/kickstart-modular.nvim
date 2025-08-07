@@ -13,7 +13,6 @@ return {
         'diff',
         'html',
         'lua',
-        'luadoc',
         'markdown',
         'markdown_inline',
         'query',
@@ -43,3 +42,4 @@ return {
   },
 }
 -- vim: ts=2 sts=2 sw=2 et
+--
