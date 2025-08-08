@@ -40,6 +40,7 @@ local function extract_completed_tasks(lines)
   for _, line in ipairs(lines) do
     if is_completed_heading(line) then
       state.completed_task = true
+      table.insert(collected, line)
     elseif state.completed_task then
       if is_blank_line(line) then
         state.completed_task = false
@@ -135,8 +136,14 @@ function M.move_to_completed()
     end
   end
 
+  if inside_block and not end_idx then
+    end_idx = #buf_lines -- pretend the "blank" is at EOF
+  end
+
   if start_idx and end_idx then
-    vim.api.nvim_buf_set_lines(buf, start_idx, end_idx + 1, false, {})
+    -- 🔧 NEW: cap end (Neovim wants end-exclusive, 0-based)
+    local end_excl = math.min(end_idx + 1, #buf_lines)
+    vim.api.nvim_buf_set_lines(buf, start_idx, end_excl, false, {})
     vim.notify('Completed tasks moved and removed from buffer', vim.log.levels.INFO)
   else
     vim.notify("Could not locate 'Completed' section to remove", vim.log.levels.WARN)
