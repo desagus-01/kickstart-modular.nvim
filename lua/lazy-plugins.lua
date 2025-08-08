@@ -4,7 +4,7 @@ require 'custom_modules.planning_index'
 
 require('lazy').setup({
 
-  require 'kickstart.plugins.lazydev',
+  require 'kickstart.plugins.lazygit',
 
   require 'kickstart.plugins.quarto',
 
@@ -41,8 +41,6 @@ require('lazy').setup({
   require 'kickstart.plugins.treesitter',
 
   require 'kickstart.plugins.debug',
-
-  -- require 'kickstart.plugins.indent_line',
 
   require 'kickstart.plugins.lint',
 
