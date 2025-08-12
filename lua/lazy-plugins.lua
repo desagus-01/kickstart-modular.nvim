@@ -10,7 +10,7 @@ require('lazy').setup({
 
   require 'kickstart.plugins.table_nvim',
 
-  require 'kickstart.plugins.copilot',
+  -- require 'kickstart.plugins.copilot',
 
   require 'kickstart.plugins.code-companion',
 
