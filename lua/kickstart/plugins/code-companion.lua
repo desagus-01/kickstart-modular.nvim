@@ -18,7 +18,7 @@ return {
           schema = {
             model = {
               -- 2) Must match `ollama list`
-              default = 'qwen2.5-coder:32b',
+              default = 'qwen3:14b',
             },
             -- optional but nice:
             keep_alive = { default = '5m' },
