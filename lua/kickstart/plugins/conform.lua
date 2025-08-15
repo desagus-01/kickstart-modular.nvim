@@ -32,7 +32,6 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        hcl = { 'packer_fmt' },
         terraform = { 'terraform_fmt' },
         tf = { 'terraform_fmt' },
         ['terraform_vars'] = { 'terraform_fmt' },
