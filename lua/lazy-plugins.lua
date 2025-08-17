@@ -6,7 +6,7 @@ require('lazy').setup({
 
   require 'kickstart.plugins.lazygit',
 
-  require 'kickstart.plugins.winbar',
+  require 'kickstart.plugins.incline',
 
   -- require 'kickstart.plugins.quarto',
 
