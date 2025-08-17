@@ -12,6 +12,19 @@ return {
       animation = true,
       insert_at_start = true,
     },
-    version = '^1.0.0', -- optional: only update when a new 1.x version is released
+    config = function()
+      require('barbar').setup()
+      vim.o.showtabline = 0
+
+      -- Toggle keymap: <leader>bh toggles the tabline
+      vim.keymap.set('n', '<leader>bh', function()
+        if vim.o.showtabline > 0 then
+          vim.o.showtabline = 0
+        else
+          vim.o.showtabline = 2
+        end
+      end, { noremap = true, silent = true, desc = 'Toggle Barbar Tabline' })
+    end,
+    version = '^1.0.0',
   },
 }

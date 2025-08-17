@@ -6,6 +6,8 @@ require('lazy').setup({
 
   require 'kickstart.plugins.lazygit',
 
+  require 'kickstart.plugins.winbar',
+
   -- require 'kickstart.plugins.quarto',
 
   require 'kickstart.plugins.table_nvim',
