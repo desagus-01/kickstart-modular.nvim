@@ -8,13 +8,13 @@ return {
     if pcall(get_ollama_model) then
       Chosen = get_ollama_model()
     else
-      vim.notify('No OLLAMA_MODEL ENV found, setting default model qwen3:8b', vim.log.levels.error)
-      Chosen = 'qwen3:8b'
+      vim.notify('No OLLAMA_MODEL ENV found, setting default model qwen2.5-coder:7b', vim.log.levels.error)
+      Chosen = 'qwen2.5-coder:7b'
     end
 
     -- set special options if we're on qwen3:8b
     local special_opts = { stream = true, vision = false }
-    if Chosen == 'qwen3:8b' then
+    if Chosen == 'qwen2.5-coder:7.5b' then
       special_opts = {
         stream = true,
         vision = false,
