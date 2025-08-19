@@ -1,20 +1,21 @@
 return {
   {
-    'rebelot/kanagawa.nvim',
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000,
     config = function()
-      require('kanagawa').setup {
-        theme = 'wave',
-        background = {
-          dark = 'wave',
+      require('catppuccin').setup {
+        auto_integrations = true,
+        highlight_overrides = {
+          all = function(colors)
+            return {
+              LineNr = { fg = colors.subtext1 }, -- 👈 subtle + visible
+              CursorLineNr = { fg = colors.lavender, bold = true },
+            }
+          end,
         },
-        overrides = function(colors)
-          return {
-            LineNr = { fg = '#FFFFFF' }, -- White line numbers
-          }
-        end,
       }
-      vim.cmd.colorscheme 'kanagawa'
+      vim.cmd.colorscheme 'catppuccin'
     end,
   },
 }
