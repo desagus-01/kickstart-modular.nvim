@@ -197,6 +197,7 @@ return {
         terraformls = {},
         dockerls = {},
         docker_compose_language_service = {},
+        harper_ls = { filetypes = { 'markdown' } },
       }
 
       -- Ensure the servers and tools above are installed
@@ -218,6 +219,7 @@ return {
         'tflint',
         'hadolint',
       })
+
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
