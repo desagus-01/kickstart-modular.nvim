@@ -9,7 +9,7 @@ return {
         highlight_overrides = {
           all = function(colors)
             return {
-              LineNr = { fg = colors.subtext1 }, -- 👈 subtle + visible
+              LineNr = { fg = colors.subtext1 },
               CursorLineNr = { fg = colors.lavender, bold = true },
             }
           end,
