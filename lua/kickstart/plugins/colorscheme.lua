@@ -6,12 +6,13 @@ return {
     config = function()
       require('catppuccin').setup {
         flavour = 'mocha',
-        auto_integrations = true,
+        -- auto_integrations = true,
         highlight_overrides = {
           all = function(colors)
             return {
               LineNr = { fg = colors.subtext1 },
-              CursorLineNr = { fg = colors.lavender, bold = true },
+              CursorLineNr = { fg = colors.pink, bold = true, italic = true },
+              CursorLine = { bg = colors.surface0 },
             }
           end,
         },
