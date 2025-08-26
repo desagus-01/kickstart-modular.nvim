@@ -2,12 +2,13 @@ vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
 
--- quick save
+-- quick save and create sessions
 vim.keymap.set('n', '<leader>w', function()
   local file_name = vim.fn.expand '%:t'
-  vim.notify(string.format('Saved File: %s ✔️', file_name))
   vim.cmd 'w'
+  vim.notify(string.format('Saved File: %s ✔️', file_name))
 end, { desc = 'Quick Save', silent = true })
+
 -- Add new line
 vim.keymap.set('n', '<CR>', 'm`o<Esc>``')
 vim.keymap.set('n', '<S-CR>', 'm`O<Esc>``')
@@ -152,5 +153,3 @@ vim.keymap.set('n', '<leader>xa', function()
   vim.api.nvim_win_set_cursor(0, { row, col })
   vim.cmd 'startinsert'
 end, { desc = '[A]dd TODO' })
-
-
