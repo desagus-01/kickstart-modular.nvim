@@ -6,7 +6,7 @@ return {
     config = function()
       require('catppuccin').setup {
         flavour = 'mocha',
-        -- auto_integrations = true,
+        auto_integrations = true,
         highlight_overrides = {
           all = function(colors)
             return {
