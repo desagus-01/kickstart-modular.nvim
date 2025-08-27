@@ -34,17 +34,19 @@ return {
         cmd = { adapter = 'qwen_coder' },
       },
       adapters = {
-        qwen_coder = function()
-          return require('codecompanion.adapters').extend('ollama', {
-            name = 'Qwen Coder (Ollama)',
-            opts = special_opts,
-            schema = {
-              model = {
-                default = Chosen,
+        http = {
+          qwen_coder = function()
+            return require('codecompanion.adapters').extend('ollama', {
+              name = 'Qwen Coder (Ollama)',
+              opts = special_opts,
+              schema = {
+                model = {
+                  default = Chosen,
+                },
               },
-            },
-          })
-        end,
+            })
+          end,
+        },
       },
     }
   end,
