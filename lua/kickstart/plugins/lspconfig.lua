@@ -81,7 +81,7 @@ return {
             end
           end
 
-          -- The following two autocommands are used to highlight references of the
+          --  The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
           --    See `:help CursorHold` for information about when this is executed
           --
@@ -113,7 +113,7 @@ return {
           -- The following code creates a keymap to toggle inlay hints in your
           -- code, if the language server you are using supports them
           --
-          -- This may be unwanted, since they displace some of your code
+          -- This maybe unwanted, since they displace some of your code
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
@@ -167,8 +167,6 @@ return {
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
         basedpyright = {
           analysis = {
             typeCheckingModel = 'recommended',
@@ -176,20 +174,13 @@ return {
             allowedUntypedLibraries = true,
           },
         },
-        --ruff = {},
         rust_analyzer = {},
-        -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         lua_ls = {
-          -- cmd = { ... },
-          -- filetypes = { ... },
-          -- capabilities = {},
           settings = {
             Lua = {
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
