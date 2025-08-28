@@ -4,6 +4,8 @@ require 'custom_modules.planning_index'
 
 require('lazy').setup({
 
+  require 'kickstart.plugins.clangd_extension',
+
   require 'kickstart.plugins.lazygit',
 
   require 'kickstart.plugins.incline',

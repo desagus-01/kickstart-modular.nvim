@@ -6,6 +6,7 @@ return {
     opts = {
       ensure_installed = {
         'python',
+        'cpp',
         'rust',
         'bash',
         'c',
