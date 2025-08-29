@@ -200,6 +200,12 @@ return {
             completeUnimported = true,
             clangdFileStatus = true,
           },
+          inlayHints = {
+            Enabled = true,
+            ParameterNames = true,
+            DeducedTypes = true,
+            Designators = true,
+          },
         },
         basedpyright = {
           analysis = {
