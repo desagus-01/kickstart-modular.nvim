@@ -165,13 +165,6 @@ return {
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
-      setup = {
-      clangd = function(_, opts)
-        local clangd_ext_opts = LazyVim.opts("clangd_extensions.nvim")
-        require("clangd_extensions").setup(vim.tbl_deep_extend("force", clangd_ext_opts or {}, { server = opts }))
-        return false
-      end,
-    },
       local servers = {
         clangd = {
           keys = {
