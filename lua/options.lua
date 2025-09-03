@@ -3,6 +3,8 @@
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+-- vim.lsp.on_type_formatting.enable()
+
 -- Make line numbers default
 vim.o.number = true
 vim.o.relativenumber = true
