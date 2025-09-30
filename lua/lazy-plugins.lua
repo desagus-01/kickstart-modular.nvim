@@ -10,7 +10,7 @@ require('lazy').setup({
 
   require 'kickstart.plugins.incline',
 
-  -- require 'kickstart.plugins.quarto',
+  require 'kickstart.plugins.fugitive',
 
   require 'kickstart.plugins.table_nvim',
 
