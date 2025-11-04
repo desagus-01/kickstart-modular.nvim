@@ -153,3 +153,6 @@ vim.keymap.set('n', '<leader>xa', function()
   vim.api.nvim_win_set_cursor(0, { row, col })
   vim.cmd 'startinsert'
 end, { desc = '[A]dd TODO' })
+
+-- yank whole doc
+vim.keymap.set('n', 'yy', '<cmd>%y+<CR>', { desc = 'Yank Whole Doc' })
