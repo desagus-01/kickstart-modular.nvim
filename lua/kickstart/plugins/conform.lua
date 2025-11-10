@@ -35,7 +35,7 @@ return {
         terraform = { 'terraform_fmt' },
         tf = { 'terraform_fmt' },
         ['terraform_vars'] = { 'terraform_fmt' },
-        python = { 'ruff_format', 'ruff_organize_imports' },
+        python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
         fish = { 'fish_indent' },
         cpp = { 'clang-format' },
       },
