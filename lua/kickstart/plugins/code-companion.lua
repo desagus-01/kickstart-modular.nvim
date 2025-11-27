@@ -1,35 +1,28 @@
 return {
   'olimorris/codecompanion.nvim',
   opts = function()
-    local function get_ollama_model()
-      return vim.env.OLLAMA_MODEL
+    -- Pick model from env, with a safe fallback
+    local chosen_model = vim.env.OLLAMA_MODEL or 'qwen2.5-coder:7b'
+    if not vim.env.OLLAMA_MODEL then
+      vim.notify('No OLLAMA_MODEL env found; using default qwen2.5-coder:7b', vim.log.levels.WARN)
     end
 
-    if pcall(get_ollama_model) then
-      Chosen = get_ollama_model()
-    else
-      vim.notify('No OLLAMA_MODEL ENV found, setting default model qwen2.5-coder:7b', vim.log.levels.error)
-      Chosen = 'qwen2.5-coder:7b'
-    end
-
-    -- set special options if we're on qwen3:8b
-    local special_opts = { stream = true, vision = false }
-    if Chosen == 'qwen2.5-coder:7.5b' then
-      special_opts = {
-        stream = true,
-        vision = false,
-        think = { default = false },
-        -- ollama extra params for efficiency on mid range CPU (laptop)
-        threads = 4,
-        batch = 128,
-        ctx = 4096,
-      }
-    end
+    -- Base opts for this adapter
+    local adapter_opts = {
+      stream = true,
+      vision = false,
+    }
 
     return {
       provider = 'telescope',
       strategies = {
-        chat = { adapter = 'qwen_coder' },
+        chat = {
+          adapter = 'qwen_coder',
+          roles = {
+            user = 'Gus',
+            llm = chosen_model,
+          },
+        },
         inline = { adapter = 'qwen_coder' },
         cmd = { adapter = 'qwen_coder' },
       },
@@ -38,10 +31,16 @@ return {
           qwen_coder = function()
             return require('codecompanion.adapters').extend('ollama', {
               name = 'Qwen Coder (Ollama)',
-              opts = special_opts,
+              opts = adapter_opts,
               schema = {
                 model = {
-                  default = Chosen,
+                  default = chosen_model,
+                },
+                think = {
+                  default = false,
+                },
+                keep_alive = {
+                  default = '5m',
                 },
               },
             })
