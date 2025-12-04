@@ -11,7 +11,7 @@ return {
     { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
   },
   opts = function(_, opts)
-    -- Add your custom window mappings
+    -- FILESYSTEM OPTIONS
     opts.filesystem = opts.filesystem or {}
     opts.filesystem.filtered_items = {
       visible = false,
@@ -21,12 +21,34 @@ return {
         '.github',
       },
       never_show = { '.git' },
-    } or {}
+    }
+
     opts.filesystem.window = opts.filesystem.window or {}
     opts.filesystem.window.mappings = opts.filesystem.window.mappings or {}
+
+    -- existing mapping
     opts.filesystem.window.mappings['\\'] = 'close_window'
 
-    -- Integrate your rename handler
+    -- add "o" mapping to our custom command
+    opts.filesystem.window.mappings['o'] = 'system_open'
+
+    -- CUSTOM COMMANDS
+    opts.commands = opts.commands or {}
+    opts.commands.system_open = function(state)
+      local node = state.tree:get_node()
+      local path = node:get_id()
+
+      -- macOS: open file in default application
+      if vim.fn.has 'macunix' == 1 then
+        vim.fn.jobstart({ 'open', path }, { detach = true })
+
+      -- Linux: open file in default application
+      elseif vim.fn.has 'unix' == 1 then
+        vim.fn.jobstart({ 'xdg-open', path }, { detach = true })
+      end
+    end
+
+    -- RENAME HANDLER
     local events = require 'neo-tree.events'
     local function on_move(data)
       -- Replace Snacks.rename.on_rename_file with your actual rename handler
