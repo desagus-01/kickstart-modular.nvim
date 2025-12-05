@@ -4,6 +4,8 @@ require 'custom_modules.planning_index'
 
 require('lazy').setup({
 
+  require 'kickstart.plugins.markdown_plus',
+
   require 'kickstart.plugins.clangd_extension',
 
   require 'kickstart.plugins.lazygit',
@@ -11,8 +13,6 @@ require('lazy').setup({
   require 'kickstart.plugins.incline',
 
   require 'kickstart.plugins.fugitive',
-
-  require 'kickstart.plugins.table_nvim',
 
   -- require 'kickstart.plugins.copilot',
 
