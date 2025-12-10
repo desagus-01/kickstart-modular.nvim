@@ -4,6 +4,8 @@ require 'custom_modules.planning_index'
 
 require('lazy').setup({
 
+  require 'kickstart.plugins.quench',
+
   require 'kickstart.plugins.markdown_plus',
 
   require 'kickstart.plugins.clangd_extension',
