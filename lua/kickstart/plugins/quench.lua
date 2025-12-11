@@ -20,12 +20,13 @@ return {
           })
         end
         map('n', '<leader>pk', '<cmd>QuenchSelectKernel<CR>', 'Select kernel')
+        map('n', '<leader>pa', '<cmd>QuenchRunAll<CR>', 'Run All Cells')
+        map('n', '<leader>pb', '<cmd>QuenchRunAboveCR>', 'Run Cells below')
         map('n', '<leader>pc', function()
           vim.api.nvim_put({ '# %%' }, 'l', true, true)
         end, 'Insert cell marker')
         map('n', '<leader>po', '<cmd>QuenchOpen<CR>', 'Open Quench UI')
         map('n', '<leader>pr', '<cmd>QuenchRunCell<CR>', 'Run current cell')
-        map('n', '<leader>pa', '<cmd>QuenchRunCellAdvance<CR>', 'Run cell and advance')
         map('v', '<leader>r', ':QuenchRunSelection<CR>', 'Run selected code')
       end,
     })
