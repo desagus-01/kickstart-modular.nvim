@@ -19,6 +19,7 @@ return {
             desc = desc,
           })
         end
+        map('n', '<leader>pq', '<cmd>QuenchResetKernel<CR>', 'Reset Kernel')
         map('n', '<leader>pk', '<cmd>QuenchSelectKernel<CR>', 'Select kernel')
         map('n', '<leader>pa', '<cmd>QuenchRunAll<CR>', 'Run All Cells')
         map('n', '<leader>pb', '<cmd>QuenchRunAboveCR>', 'Run Cells below')
