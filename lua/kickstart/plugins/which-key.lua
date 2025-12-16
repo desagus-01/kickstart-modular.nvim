@@ -61,8 +61,8 @@ return {
       spec = {
         { '<leader>s', group = '[S]earch' },
         { '<leader>t', group = '[T]oggle' },
+        { '<leader>r', group = '[R]ename' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-        -- { '<leader>p', group = '[P]ython Interactive', mode = { 'n', 'v' } },
         { '<leader>p', group = '󰌠 [P]ython Interactive', mode = { 'n', 'v' } },
       },
     },

@@ -158,4 +158,12 @@ end, { desc = '[A]dd TODO' })
 vim.keymap.set('n', 'yy', '<cmd>%y+<CR>', { desc = 'Yank Whole Doc' })
 
 -- rename symbol
-vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, { desc = 'Rename in Project' })
+
+vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
+
+local function rename_in_function()
+  vim.cmd 'normal! vif'
+  vim.lsp.buf.rename()
+end
+
+vim.keymap.set('n', '<leader>rf', rename_in_function, { desc = 'Rename in Function' })
