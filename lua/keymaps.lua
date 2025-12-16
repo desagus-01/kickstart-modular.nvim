@@ -156,3 +156,6 @@ end, { desc = '[A]dd TODO' })
 
 -- yank whole doc
 vim.keymap.set('n', 'yy', '<cmd>%y+<CR>', { desc = 'Yank Whole Doc' })
+
+-- rename symbol
+vim.keymap.set('n', '<leader>r', vim.lsp.buf.rename, { desc = 'Rename in Project' })
