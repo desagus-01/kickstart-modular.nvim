@@ -207,14 +207,15 @@ return {
             Designators = true,
           },
         },
-        basedpyright = {
-          analysis = {
-            typeCheckingModel = 'recommended',
-            failOnWarning = false,
-            allowedUntypedLibraries = true,
-          },
-        },
+        -- basedpyright = {
+        --   analysis = {
+        --     typeCheckingModel = 'recommended',
+        --     failOnWarning = false,
+        --     allowedUntypedLibraries = true,
+        --   },
+        -- },
         rust_analyzer = {},
+        pyrefly = {},
         lua_ls = {
           settings = {
             Lua = {
@@ -249,6 +250,7 @@ return {
         'tflint',
         'codelldb',
         'hadolint',
+        'pyrefly',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
