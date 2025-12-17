@@ -8,6 +8,7 @@ return {
         'python',
         'cpp',
         'rust',
+        'zig',
         'bash',
         'c',
         'diff',
