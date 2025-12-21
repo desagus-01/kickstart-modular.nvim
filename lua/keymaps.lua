@@ -1,6 +1,20 @@
+-- Snacks terminal
 vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
+
+vim.keymap.set('n', '<leader>g', function()
+  vim.ui.input({ prompt = 'Commit message: ' }, function(msg)
+    if not msg or msg == '' then
+      return
+    end
+    msg = msg:gsub('"', '\\"')
+
+    local cmd = 'git add . && git commit -m "' .. msg .. '" && git push'
+    vim.cmd('botright split | resize 12 | terminal sh -c ' .. vim.fn.shellescape(cmd))
+    vim.cmd 'startinsert'
+  end)
+end, { desc = 'GACP (terminal output)' })
 
 -- quick save and create sessions
 vim.keymap.set('n', '<leader>w', function()
