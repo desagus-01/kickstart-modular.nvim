@@ -14,7 +14,7 @@ vim.keymap.set('n', '<leader>g', function()
     vim.cmd('botright split | resize 12 | terminal sh -c ' .. vim.fn.shellescape(cmd))
     vim.cmd 'startinsert'
   end)
-end, { desc = 'GACP (terminal output)' })
+end, { desc = 'GACP (Push Changes)' })
 
 -- quick save and create sessions
 vim.keymap.set('n', '<leader>w', function()
