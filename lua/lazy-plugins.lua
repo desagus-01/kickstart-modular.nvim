@@ -8,9 +8,9 @@ require('lazy').setup({
 
   require 'kickstart.plugins.markdown_plus',
 
-  require 'kickstart.plugins.clangd_extension',
+  -- require 'kickstart.plugins.clangd_extension',
 
-  require 'kickstart.plugins.lazygit',
+  -- require 'kickstart.plugins.lazygit',
 
   require 'kickstart.plugins.incline',
 
