@@ -3,7 +3,7 @@ vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
 
-vim.keymap.set('n', '<leader>g', function()
+vim.keymap.set('n', '<leader>qg', function()
   vim.ui.input({ prompt = 'Commit message: ' }, function(msg)
     if not msg or msg == '' then
       return
@@ -14,10 +14,10 @@ vim.keymap.set('n', '<leader>g', function()
     vim.cmd('botright split | resize 12 | terminal sh -c ' .. vim.fn.shellescape(cmd))
     vim.cmd 'startinsert'
   end)
-end, { desc = 'GACP (Git Push Changes)' })
+end, { desc = 'Quick Git Commit Push' })
 
 -- quick save and create sessions
-vim.keymap.set('n', '<leader>w', function()
+vim.keymap.set('n', '<leader>qw', function()
   local file_name = vim.fn.expand '%:t'
   vim.cmd 'w'
   vim.notify(string.format('Saved File: %s ✔️', file_name))
