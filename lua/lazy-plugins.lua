@@ -10,21 +10,17 @@ require('lazy').setup({
 
   -- require 'kickstart.plugins.clangd_extension',
 
-  -- require 'kickstart.plugins.lazygit',
-
   require 'kickstart.plugins.incline',
 
   require 'kickstart.plugins.fugitive',
 
   -- require 'kickstart.plugins.copilot',
 
-  require 'kickstart.plugins.code-companion',
+  -- require 'kickstart.plugins.code-companion',
 
   require 'kickstart.plugins.render-markdown',
 
   require 'kickstart.plugins.snacks',
-
-  require 'kickstart.plugins.barbar',
 
   require 'kickstart.plugins.gitsigns',
 
