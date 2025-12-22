@@ -22,6 +22,10 @@ vim.keymap.set('n', '<leader>qw', function()
   vim.cmd 'w'
   vim.notify(string.format('Saved File: %s ✔️', file_name))
 end, { desc = 'Quick Save', silent = true })
+--quick quit
+vim.keymap.set('n', '<leader>qq', function()
+  vim.cmd 'q'
+end, { desc = 'Quick Quit', silent = true })
 
 -- Add new line
 vim.keymap.set('n', '<CR>', 'm`o<Esc>``')
@@ -32,7 +36,7 @@ vim.keymap.set('n', '<S-CR>', 'm`O<Esc>``')
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>qd', vim.diagnostic.setloclist, { desc = 'Quick Diagnostics' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
