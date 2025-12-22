@@ -16,16 +16,18 @@ vim.keymap.set('n', '<leader>qg', function()
   end)
 end, { desc = 'Quick Git Commit Push' })
 
--- quick save and create sessions
+-- quick save, quite and quit and save
 vim.keymap.set('n', '<leader>qw', function()
   local file_name = vim.fn.expand '%:t'
   vim.cmd 'w'
   vim.notify(string.format('Saved File: %s ✔️', file_name))
 end, { desc = 'Quick Save', silent = true })
---quick quit
 vim.keymap.set('n', '<leader>qq', function()
   vim.cmd 'q'
 end, { desc = 'Quick Quit', silent = true })
+vim.keymap.set('n', '<leader>qe', function()
+  vim.cmd 'x'
+end, { desc = 'Quick Quit and Save', silent = true })
 
 -- Add new line
 vim.keymap.set('n', '<CR>', 'm`o<Esc>``')
