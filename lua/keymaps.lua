@@ -3,6 +3,7 @@ vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
 
+-- Quick Commit
 vim.keymap.set('n', '<leader>qg', function()
   vim.ui.input({ prompt = 'Commit message: ' }, function(msg)
     if not msg or msg == '' then
@@ -16,7 +17,7 @@ vim.keymap.set('n', '<leader>qg', function()
   end)
 end, { desc = 'Quick Git Commit Push' })
 
--- quick save, quite and quit and save
+-- quick save, quit and quit and save
 vim.keymap.set('n', '<leader>qw', function()
   local file_name = vim.fn.expand '%:t'
   vim.cmd 'w'
@@ -37,7 +38,7 @@ vim.keymap.set('n', '<S-CR>', 'm`O<Esc>``')
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- Diagnostic keymaps
+-- Quick Diagnostic keymaps
 vim.keymap.set('n', '<leader>qd', vim.diagnostic.setloclist, { desc = 'Quick Diagnostics' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
@@ -121,7 +122,7 @@ vim.keymap.set('n', '<leader>xa', function()
 end, { desc = '[A]dd TODO' })
 
 -- yank whole doc
-vim.keymap.set('n', 'yy', '<cmd>%y+<CR>', { desc = 'Yank Whole Doc' })
+vim.keymap.set('n', 'Y', 'gg"+yG', { desc = 'Yank whole buffer to clipboard' })
 
 -- rename symbol
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
