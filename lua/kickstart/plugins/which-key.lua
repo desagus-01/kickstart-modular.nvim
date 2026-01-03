@@ -61,7 +61,6 @@ return {
       spec = {
         { '<leader>s', group = '[S]earch' },
         { '<leader>q', group = '[Q]uick Actions' },
-        { '<leader>b', group = '[B]uffer' },
         { '<leader>o', group = 'T[O]DO' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>r', group = '[R]ename' },

@@ -24,11 +24,11 @@ vim.keymap.set('n', '<leader>qw', function()
   vim.notify(string.format('Saved File: %s ✔️', file_name))
 end, { desc = 'Quick Save', silent = true })
 vim.keymap.set('n', '<leader>qq', function()
-  vim.cmd 'q'
-end, { desc = 'Quick Quit', silent = true })
+  vim.cmd 'wq'
+end, { desc = 'Quick Quit Window', silent = true })
 vim.keymap.set('n', '<leader>qe', function()
-  vim.cmd 'x'
-end, { desc = 'Quick Quit and Save', silent = true })
+  vim.cmd 'qa'
+end, { desc = 'Quick Quit All', silent = true })
 
 -- Add new line
 vim.keymap.set('n', '<CR>', 'm`o<Esc>``')
