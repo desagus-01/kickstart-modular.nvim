@@ -1,5 +1,5 @@
 -- floating quick commit/push
-local floatterm = require 'utils'
+local floatterm = require 'utils' -- floating term helper
 
 vim.keymap.set('n', '<leader>qg', function()
   vim.ui.input({ prompt = 'Commit message: ' }, function(msg)
@@ -25,6 +25,71 @@ vim.keymap.set('n', '<leader>qg', function()
     })
   end)
 end, { desc = 'Quick Git Commit Push (float)' })
+
+-- quick runners
+vim.keymap.set('n', '<leader>qr', function()
+  if vim.bo.modified then
+    vim.cmd 'write'
+  end
+
+  local file = vim.fn.expand '%:p'
+  if file == '' then
+    return
+  end
+
+  local cmd = 'uv run ' .. vim.fn.fnameescape(file)
+
+  floatterm.float_term(cmd, {
+    title = 'uv run: ' .. vim.fn.expand '%:t',
+    cwd = vim.fn.expand '%:p:h',
+    auto_close = false,
+    close_keys = { 'q', '<Esc>' },
+    width_ratio = 0.80,
+    height_ratio = 0.35,
+  })
+end, { desc = 'Run in floating (Python only)' })
+
+-- Run current Python file in the persistent Snacks terminal (no float)
+vim.keymap.set('n', '<leader>qR', function()
+  if vim.bo.modified then
+    vim.cmd 'write'
+  end
+
+  local file = vim.fn.expand '%:p'
+  if file == '' then
+    return
+  end
+
+  local cmd = 'uv run ' .. vim.fn.fnameescape(file)
+
+  -- 1) Ensure the persistent terminal exists and is visible
+  -- (Snacks: no cmd => bottom split terminal)
+  local term, _ = Snacks.terminal.get(nil, { create = true }) -- returns terminal win object
+  if term and term.show then
+    term:show()
+  else
+    -- fallback: at least toggle it open
+    Snacks.terminal.toggle()
+  end
+
+  -- 2) Find a snacks terminal buffer that has a terminal job
+  local term_buf
+  for _, b in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.bo[b].filetype == 'snacks_terminal' and vim.b[b].terminal_job_id then
+      term_buf = b
+      break
+    end
+  end
+
+  if not term_buf then
+    vim.notify("Couldn't find Snacks terminal buffer to send command to.", vim.log.levels.ERROR)
+    return
+  end
+
+  -- 3) Send the command to the terminal job
+  local chan = vim.b[term_buf].terminal_job_id
+  vim.api.nvim_chan_send(chan, cmd .. '\n')
+end, { desc = 'Run Python (uv) in persistent Snacks terminal' })
 
 -- Snacks terminal
 vim.keymap.set({ 'n', 't' }, '<C-`>', function()
