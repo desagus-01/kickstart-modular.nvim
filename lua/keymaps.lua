@@ -1,9 +1,6 @@
--- Snacks terminal
-vim.keymap.set({ 'n', 't' }, '<C-`>', function()
-  require('snacks.terminal').toggle()
-end, { desc = 'Toggle Snacks terminal' })
+-- floating quick commit/push
+local floatterm = require 'utils'
 
--- Quick Commit
 vim.keymap.set('n', '<leader>qg', function()
   vim.ui.input({ prompt = 'Commit message: ' }, function(msg)
     if not msg or msg == '' then
@@ -12,10 +9,27 @@ vim.keymap.set('n', '<leader>qg', function()
     msg = msg:gsub('"', '\\"')
 
     local cmd = 'git add . && git commit -m "' .. msg .. '" && git push'
-    vim.cmd('botright split | resize 12 | terminal sh -c ' .. vim.fn.shellescape(cmd))
-    vim.cmd 'startinsert'
+
+    floatterm.float_term(cmd, {
+      title = 'Git: add + commit + push',
+      auto_close = false, -- set true if you want it to vanish on success
+      height_ratio = 0.30,
+      width_ratio = 0.75,
+      close_keys = { 'q', '<Esc>' },
+      on_exit = function(code, ctx)
+        -- example: if it failed, keep it open and maybe show a message
+        if code ~= 0 then
+          vim.notify('Git command failed (exit ' .. code .. ')', vim.log.levels.WARN)
+        end
+      end,
+    })
   end)
-end, { desc = 'Quick Git Commit Push' })
+end, { desc = 'Quick Git Commit Push (float)' })
+
+-- Snacks terminal
+vim.keymap.set({ 'n', 't' }, '<C-`>', function()
+  require('snacks.terminal').toggle()
+end, { desc = 'Toggle Snacks terminal' })
 
 -- quick save, quit and quit and save
 vim.keymap.set('n', '<leader>qw', function()
@@ -64,16 +78,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- Custom keybinds for plugins
--- Code companion
--- vim.keymap.set({ 'n', 'v' }, '<C-a>', '<cmd>CodeCompanionActions<cr>', { noremap = true, silent = true })
--- vim.keymap.set({ 'n', 'v' }, '<LocalLeader>a', '<cmd>CodeCompanionChat Toggle<cr>', { noremap = true, silent = true })
--- vim.keymap.set('v', 'ga', '<cmd>CodeCompanionChat Add<cr>', { noremap = true, silent = true })
---
--- -- Expand 'cc' into 'CodeCompanion' in the command line
--- vim.cmd [[cab cc CodeCompanion]]
---
---
+-- Todos stuff
 local todo = require -- tiny alias so we don't type the full path twice
 
 vim.keymap.set('n', '<leader>oo', function()
