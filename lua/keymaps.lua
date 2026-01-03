@@ -12,7 +12,7 @@ vim.keymap.set('n', '<leader>qg', function()
 
     floatterm.float_term(cmd, {
       title = 'Git: add + commit + push',
-      auto_close = false,
+      auto_close = true,
       height_ratio = 0.30,
       width_ratio = 0.75,
       close_keys = { 'q', '<Esc>' },
