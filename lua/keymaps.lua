@@ -12,12 +12,11 @@ vim.keymap.set('n', '<leader>qg', function()
 
     floatterm.float_term(cmd, {
       title = 'Git: add + commit + push',
-      auto_close = false, -- set true if you want it to vanish on success
+      auto_close = false,
       height_ratio = 0.30,
       width_ratio = 0.75,
       close_keys = { 'q', '<Esc>' },
       on_exit = function(code, ctx)
-        -- example: if it failed, keep it open and maybe show a message
         if code ~= 0 then
           vim.notify('Git command failed (exit ' .. code .. ')', vim.log.levels.WARN)
         end
@@ -27,7 +26,7 @@ vim.keymap.set('n', '<leader>qg', function()
 end, { desc = 'Quick Git Commit Push (float)' })
 
 -- quick runners
-vim.keymap.set('n', '<leader>qr', function()
+vim.keymap.set('n', '<leader>qR', function()
   if vim.bo.modified then
     vim.cmd 'write'
   end
@@ -49,8 +48,8 @@ vim.keymap.set('n', '<leader>qr', function()
   })
 end, { desc = 'Run in floating (Python only)' })
 
--- Run current Python file in the persistent Snacks terminal (no float)
-vim.keymap.set('n', '<leader>qR', function()
+-- Run current Python file in the persistent
+vim.keymap.set('n', '<leader>qr', function()
   if vim.bo.modified then
     vim.cmd 'write'
   end
