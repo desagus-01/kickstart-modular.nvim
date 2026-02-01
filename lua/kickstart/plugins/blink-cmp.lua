@@ -4,7 +4,7 @@ return {
     version = '1.*',
 
     -- Load when you actually start typing (big startup win)
-    event = 'VimEnter',
+    event = 'InsertEnter',
 
     dependencies = {
       { -- Snippet Engine

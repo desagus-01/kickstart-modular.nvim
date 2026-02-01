@@ -9,7 +9,6 @@ return {
         'c',
         'cpp',
         'diff',
-        'dockerfile',
         'hcl',
         'html',
         'lua',
@@ -25,10 +24,12 @@ return {
         'zig',
       }
 
+      -- Install only when YOU ask
       vim.api.nvim_create_user_command('TSEnsure', function()
         require('nvim-treesitter').install(filetypes)
       end, {})
 
+      -- Start highlighting when filetype is set
       vim.api.nvim_create_autocmd('FileType', {
         pattern = filetypes,
         callback = function(args)

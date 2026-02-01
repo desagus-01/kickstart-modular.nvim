@@ -212,8 +212,8 @@ return {
         -- 'clangd',
         'zls',
         'terraform-ls',
-        'dockerfile-language-server',
-        'docker-compose-language-service',
+        -- 'dockerfile-language-server',
+        -- 'docker-compose-language-service',
         'pyrefly',
 
         -- DAP
