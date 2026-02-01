@@ -6,14 +6,27 @@ return {
       -- mini.tabline
       -- =====================================================
       local tabline = require 'mini.tabline'
+
+      local function clamp(str, max)
+        if #str <= max then
+          return str
+        end
+        return str:sub(1, max - 1) .. '…'
+      end
+
       tabline.setup {
         show_icons = true,
         format = function(buf_id, label)
+          label = clamp(label, 18)
+
           local s = MiniTabline.default_format(buf_id, label)
           if vim.bo[buf_id].modified then
             s = s .. ' ●'
           end
-          return s .. '│'
+
+          -- Padding makes it feel like a real bufferline
+          -- If you want the old separator back, do: return ' ' .. s .. ' ' .. '│'
+          return ' ' .. s .. ' '
         end,
       }
 
@@ -86,20 +99,23 @@ return {
       -- Tabline highlight linking
       -- =====================================================
       local function set_tabline_hl()
-        local link = function(from, to)
-          vim.api.nvim_set_hl(0, from, { link = to })
-        end
+        local c = require('catppuccin.palettes').get_palette 'mocha'
 
-        link('MiniTablineVisible', 'TabLine')
-        link('MiniTablineHidden', 'TabLine')
-        link('MiniTablineFill', 'TabLineFill')
+        -- Layered tabline base (barbar-ish)
+        vim.api.nvim_set_hl(0, 'TabLineFill', { bg = c.crust })
+        vim.api.nvim_set_hl(0, 'TabLine', { bg = c.mantle, fg = c.overlay0 })
+        vim.api.nvim_set_hl(0, 'TabLineSel', { bg = c.surface1, fg = c.text, bold = true })
 
-        link('MiniTablineModifiedVisible', 'DiffText')
-        link('MiniTablineModifiedHidden', 'DiffText')
+        -- MiniTabline links
+        vim.api.nvim_set_hl(0, 'MiniTablineVisible', { link = 'TabLine' })
+        vim.api.nvim_set_hl(0, 'MiniTablineHidden', { link = 'TabLine' })
+        vim.api.nvim_set_hl(0, 'MiniTablineFill', { link = 'TabLineFill' })
+        vim.api.nvim_set_hl(0, 'MiniTablineCurrent', { link = 'TabLineSel', bold = true })
 
-        -- Current buffer: link + emphasis (no redundant double-linking)
-        vim.api.nvim_set_hl(0, 'MiniTablineCurrent', { link = 'TabLineSel', bold = true, underline = true })
-        vim.api.nvim_set_hl(0, 'MiniTablineModifiedCurrent', { link = 'DiffText', bold = true, underline = true })
+        -- Modified buffers: pop, but still classy
+        vim.api.nvim_set_hl(0, 'MiniTablineModifiedVisible', { bg = c.mantle, fg = c.peach, bold = true })
+        vim.api.nvim_set_hl(0, 'MiniTablineModifiedHidden', { bg = c.mantle, fg = c.peach })
+        vim.api.nvim_set_hl(0, 'MiniTablineModifiedCurrent', { bg = c.surface1, fg = c.yellow, bold = true })
       end
 
       set_tabline_hl()
@@ -138,7 +154,7 @@ return {
 
       require('mini.surround').setup()
 
-      -- mini.ai (no LazyVim dependency)
+      -- mini.ai
       local ai = require 'mini.ai'
       ai.setup {
         n_lines = 500,
