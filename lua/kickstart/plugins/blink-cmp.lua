@@ -4,7 +4,7 @@ return {
     version = '1.*',
 
     -- Load when you actually start typing (big startup win)
-    event = 'InsertEnter',
+    event = 'VimEnter',
 
     dependencies = {
       { -- Snippet Engine
@@ -36,9 +36,7 @@ return {
     ---@type blink.cmp.Config
     opts = {
       keymap = { preset = 'default' },
-
       appearance = { nerd_font_variant = 'mono' },
-
       completion = {
         documentation = { auto_show = true, auto_show_delay_ms = 500 },
       },
