@@ -34,7 +34,7 @@ return {
     },
     input = { enabled = true },
     terminal = { enabled = true },
-    picker = { enabled = true },
+    -- picker = { enabled = true },
     notifier = { enabled = true },
     lazygit = { enabled = true },
     quickfile = { enabled = true },
