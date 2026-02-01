@@ -24,8 +24,8 @@ return {
           return nil
         else
           return {
-            timeout_ms = 3000,
-            quiet = false, -- not recommended to change
+            timeout_ms = 500,
+            -- quiet = false, -- not recommended to change
             lsp_format = 'fallback', -- not recommended to change
           }
         end
