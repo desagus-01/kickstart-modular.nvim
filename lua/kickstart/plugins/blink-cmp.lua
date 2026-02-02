@@ -29,7 +29,7 @@ return {
       },
 
       -- lazydev is only really useful for Lua buffers
-      { 'folke/lazydev.nvim', ft = 'lua' },
+      { 'folke/lazydev.nvim', ft = 'lua', dependencies = { 'neovim/nvim-lspconfig' } },
     },
 
     ---@module "blink.cmp"
