@@ -1,5 +1,6 @@
 return {
   'ryan-ressmeyer/quench.nvim',
+  ft = 'python',
   config = function()
     vim.g.quench_nvim_web_server_host = '127.0.0.1'
     vim.g.quench_nvim_web_server_port = 8765
