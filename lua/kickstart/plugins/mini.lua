@@ -3,7 +3,7 @@ return {
     'echasnovski/mini.nvim',
     config = function()
       -- =====================================================
-      -- mini.tabline
+      -- mini.tabline (UNCHANGED LOOK)
       -- =====================================================
       local tabline = require 'mini.tabline'
 
@@ -37,6 +37,8 @@ return {
       -- =====================================================
       -- Buffer helpers (cycle + smart delete)
       -- =====================================================
+      local bufremove = require 'mini.bufremove' -- cache once
+
       local function get_listed_buffers()
         return vim.tbl_filter(function(b)
           return vim.api.nvim_buf_is_valid(b) and vim.bo[b].buflisted
@@ -68,13 +70,13 @@ return {
 
         -- Last listed buffer: delete and stop
         if #bufs <= 1 then
-          require('mini.bufremove').delete(current, force == true)
+          bufremove.delete(current, force == true)
           return
         end
 
         -- Switch away first, then delete the old one
         cycle_listed_buffers(1)
-        require('mini.bufremove').delete(current, force == true)
+        bufremove.delete(current, force == true)
       end
 
       -- Buffer cycling (Alt+, / Alt+. )
@@ -96,7 +98,7 @@ return {
       end, { desc = 'Delete buffer (smart, force)' })
 
       -- =====================================================
-      -- Tabline highlight linking
+      -- Tabline highlight linking (UNCHANGED LOOK)
       -- =====================================================
       local function set_tabline_hl()
         local c = require('catppuccin.palettes').get_palette 'mocha'
@@ -118,6 +120,7 @@ return {
         vim.api.nvim_set_hl(0, 'MiniTablineModifiedCurrent', { bg = c.surface1, fg = c.yellow, bold = true })
       end
 
+      -- Keep EXACT original behavior: apply immediately and reapply on ColorScheme.
       set_tabline_hl()
       vim.api.nvim_create_autocmd('ColorScheme', { callback = set_tabline_hl })
 
@@ -126,75 +129,73 @@ return {
       end, { desc = 'Toggle Tabline' })
 
       -- =====================================================
-      -- mini.bufremove
+      -- mini.bufremove (cheap; keep immediate)
       -- =====================================================
-      require('mini.bufremove').setup { silent = true }
+      bufremove.setup { silent = true }
 
       vim.keymap.set('n', '<leader>bd', function()
-        require('mini.bufremove').delete(0, false)
+        bufremove.delete(0, false)
       end, { desc = 'Delete buffer' })
 
       vim.keymap.set('n', '<leader>bD', function()
-        require('mini.bufremove').delete(0, true)
+        bufremove.delete(0, true)
       end, { desc = 'Delete buffer (force)' })
 
       -- =====================================================
-      -- Other mini modules
+      -- Other mini modules (deferred; DOES NOT affect tabline look)
       -- =====================================================
-      require('mini.sessions').setup { autowrite = true }
-      require('mini.diff').setup()
+      vim.schedule(function()
+        require('mini.sessions').setup { autowrite = true }
+        require('mini.diff').setup()
 
-      require('mini.pairs').setup {
-        modes = { insert = true, command = true, terminal = false },
-        skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
-        skip_ts = { 'string' },
-        skip_unbalanced = true,
-        markdown = true,
-      }
+        require('mini.pairs').setup {
+          modes = { insert = true, command = true, terminal = false },
+          skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
+          skip_ts = { 'string' },
+          skip_unbalanced = true,
+          markdown = true,
+        }
 
-      require('mini.surround').setup()
+        require('mini.surround').setup()
 
-      -- mini.ai
-      local ai = require 'mini.ai'
-      ai.setup {
-        n_lines = 500,
-        custom_textobjects = {
-          o = ai.gen_spec.treesitter {
-            a = { '@block.outer', '@conditional.outer', '@loop.outer' },
-            i = { '@block.inner', '@conditional.inner', '@loop.inner' },
-          },
-          f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
-          c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
-          t = {
-            '<([%p%w]-)%f[^<%w][^<>]->.-</%1>',
-            '^<.->().*()</[^/]->$',
-          },
-          d = { '%f[%d]%d+' },
-          e = {
-            {
-              '%u[%l%d]+%f[^%l%d]',
-              '%f[%S][%l%d]+%f[^%l%d]',
-              '%f[%P][%l%d]+%f[^%l%d]',
-              '^[%l%d]+%f[^%l%d]',
+        local ai = require 'mini.ai'
+        ai.setup {
+          n_lines = 500,
+          custom_textobjects = {
+            o = ai.gen_spec.treesitter {
+              a = { '@block.outer', '@conditional.outer', '@loop.outer' },
+              i = { '@block.inner', '@conditional.inner', '@loop.inner' },
             },
-            '^().*()$',
+            f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' },
+            c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' },
+            t = {
+              '<([%p%w]-)%f[^<%w][^<>]->.-</%1>',
+              '^<.->().*()</[^/]->$',
+            },
+            d = { '%f[%d]%d+' },
+            e = {
+              {
+                '%u[%l%d]+%f[^%l%d]',
+                '%f[%S][%l%d]+%f[^%l%d]',
+                '%f[%P][%l%d]+%f[^%l%d]',
+                '^[%l%d]+%f[^%l%d]',
+              },
+              '^().*()$',
+            },
+            g = ai.gen_spec.buffer,
+            u = ai.gen_spec.function_call(),
+            U = ai.gen_spec.function_call { name_pattern = '[%w_]' },
           },
-          g = ai.gen_spec.buffer,
-          u = ai.gen_spec.function_call(),
-          U = ai.gen_spec.function_call { name_pattern = '[%w_]' },
-        },
-      }
+        }
 
-      require('mini.comment').setup()
+        require('mini.comment').setup()
 
-      -- =====================================================
-      -- mini.statusline
-      -- =====================================================
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
+        local statusline = require 'mini.statusline'
+        statusline.setup { use_icons = vim.g.have_nerd_font }
+        statusline.section_location = function()
+          return '%2l:%-2v'
+        end
+      end)
     end,
   },
 }
