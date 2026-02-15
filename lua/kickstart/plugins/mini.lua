@@ -156,7 +156,20 @@ return {
           markdown = true,
         }
 
-        require('mini.surround').setup()
+        require('mini.surround').setup {
+          mappings = {
+            add = 'gSa',
+            delete = 'gSd',
+            replace = 'gSr',
+            find = 'gSf',
+            find_left = 'gSF',
+            highlight = 'gSh',
+            update_n_lines = 'gSn',
+
+            suffix_last = 'l',
+            suffix_next = 'n',
+          },
+        }
 
         local ai = require 'mini.ai'
         ai.setup {
@@ -190,11 +203,11 @@ return {
 
         require('mini.comment').setup()
 
-        local statusline = require 'mini.statusline'
-        statusline.setup { use_icons = vim.g.have_nerd_font }
-        statusline.section_location = function()
-          return '%2l:%-2v'
-        end
+        -- local statusline = require 'mini.statusline'
+        -- statusline.setup { use_icons = vim.g.have_nerd_font }
+        -- statusline.section_location = function()
+        --   return '%2l:%-2v'
+        -- end
       end)
     end,
   },

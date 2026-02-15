@@ -39,6 +39,7 @@ return {
       },
 
       -- Document existing key chains
+
       spec = {
         { '<leader>s', group = '[S]earch' },
         { '<leader>q', group = '[Q]uick Actions' },
@@ -47,6 +48,20 @@ return {
         { '<leader>r', group = '[R]ename' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
         { '<leader>p', group = '󰌠 [P]ython Interactive', mode = { 'n', 'v' } },
+
+        -- MiniSurround (Normal mode)
+        { 'gS', group = 'Surround' },
+        { 'gSa', desc = 'Add surrounding' },
+        { 'gSd', desc = 'Delete surrounding' },
+        { 'gSr', desc = 'Replace surrounding' },
+        { 'gSf', desc = 'Find right surrounding' },
+        { 'gSF', desc = 'Find left surrounding' },
+        { 'gSh', desc = 'Highlight surrounding' },
+        { 'gSn', desc = 'Update n_lines' },
+
+        -- MiniSurround (Visual mode, mainly add)
+        { 'gS', group = 'Surround', mode = 'v' },
+        { 'gSa', desc = 'Add surrounding', mode = 'v' },
       },
     },
   },

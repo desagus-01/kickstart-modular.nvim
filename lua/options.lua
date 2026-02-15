@@ -4,6 +4,10 @@
 --  For more options, you can see `:help option-list`
 
 -- vim.lsp.on_type_formatting.enable()
+-- No status line
+vim.o.laststatus = 0
+vim.o.ruler = false
+vim.o.showcmd = false
 
 -- Make line numbers default
 vim.o.number = true
