@@ -2,9 +2,9 @@ return {
   'olimorris/codecompanion.nvim',
   opts = function()
     -- Pick model from env, with a safe fallback
-    local chosen_model = vim.env.OLLAMA_MODEL or 'qwen2.5-coder:7b'
+    local chosen_model = vim.env.OLLAMA_MODEL
     if not vim.env.OLLAMA_MODEL then
-      vim.notify('No OLLAMA_MODEL env found; using default qwen2.5-coder:7b', vim.log.levels.WARN)
+      vim.notify('No OLLAMA_MODEL env found', vim.log.levels.WARN)
     end
 
     -- Base opts for this adapter
@@ -12,6 +12,23 @@ return {
       stream = true,
       vision = false,
     }
+
+    local function map(modes, lhs, rhs, desc)
+      vim.keymap.set(modes, lhs, rhs, { noremap = true, silent = true, desc = desc })
+    end
+
+    -- Chat toggle
+    map('n', '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', 'CodeCompanion: Toggle chat')
+
+    -- Inline assistant:
+    -- Normal mode can stay <cmd>...
+    map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion: Inline assistant')
+
+    -- Visual mode MUST use a range (:'<,'>) or selection context won’t apply properly
+    map('v', '<leader>ca', ":'<,'>CodeCompanion<CR>", 'CodeCompanion: Inline assistant (selection)')
+
+    -- Command mode helper
+    map('n', '<leader>cm', '<cmd>CodeCompanionCmd<CR>', 'CodeCompanion: Command mode')
 
     return {
       provider = 'telescope',
