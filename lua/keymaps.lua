@@ -195,6 +195,7 @@ vim.keymap.set('n', 'Y', function()
   local view = vim.fn.winsaveview()
   vim.cmd [[silent keepjumps %y+]]
   vim.fn.winrestview(view)
+  vim.notify('Yanked whole buffer to clipboard (+)', vim.log.levels.INFO)
 end, { desc = 'Yank whole buffer to clipboard' })
 
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
