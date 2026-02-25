@@ -191,9 +191,12 @@ vim.keymap.set('n', '<leader>xa', function()
 end, { desc = '[A]dd TODO' })
 
 -- yank whole doc
-vim.keymap.set('n', 'Y', 'gg"+yG', { desc = 'Yank whole buffer to clipboard' })
+vim.keymap.set('n', 'Y', function()
+  local view = vim.fn.winsaveview()
+  vim.cmd [[silent keepjumps %y+]]
+  vim.fn.winrestview(view)
+end, { desc = 'Yank whole buffer to clipboard' })
 
--- rename symbol
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
 
 vim.keymap.set('n', '<leader>rf', vim.lsp.buf.rename, { desc = 'Rename (LSP)' })
