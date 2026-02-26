@@ -3,14 +3,6 @@ return {
   dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
   ---@module 'render-markdown'
   ---@type render.md.UserConfig
-  opts = {
-    latex = { enabled = false },
-    completions = {
-      lsp = {
-        enabled = true,
-      },
-      blink = { enabled = true },
-    },
-  },
+  opts = {},
   ft = { 'markdown', 'codecompanion', 'quarto' },
 }
