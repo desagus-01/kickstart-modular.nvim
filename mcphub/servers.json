@@ -1,0 +1,62 @@
+{
+  "mcpServers": {
+    "brave": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@brave/brave-search-mcp-server",
+        "--transport",
+        "stdio"
+      ],
+      "disabled": false,
+      "env": {
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
+      }
+    },
+
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "disabled": false,
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "disabled": false
+    },
+
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/gus/code",
+        "/home/gus/.config/nvim",
+        "/home/gus/notes"
+      ],
+      "disabled": false
+    },
+
+    "memory_mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "disabled": false,
+      "env": {
+        "MCP_MEMORY_DATA_FILE": "${env:HOME}/.local/share/mcp/memory.jsonl"
+      }
+    }
+  }
+}

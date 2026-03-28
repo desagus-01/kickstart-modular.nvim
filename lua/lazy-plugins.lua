@@ -16,7 +16,7 @@ require('lazy').setup({
 
   require 'kickstart.plugins.fugitive',
 
-  -- require 'kickstart.plugins.copilot',
+  require 'kickstart.plugins.copilot',
 
   require 'kickstart.plugins.code-companion',
 

@@ -1,67 +1,143 @@
 return {
   'olimorris/codecompanion.nvim',
-  opts = function()
-    -- Pick model from env, with a safe fallback
-    local chosen_model = vim.env.OLLAMA_MODEL
-    if not vim.env.OLLAMA_MODEL then
-      vim.notify('No OLLAMA_MODEL env found', vim.log.levels.WARN)
-    end
+  dependencies = {
+    'nvim-lua/plenary.nvim',
+    {
+      'nvim-treesitter/nvim-treesitter',
+      build = ':TSUpdate',
+      lazy = false,
+    },
+    {
+      'ravitemer/mcphub.nvim',
+      dependencies = { 'nvim-lua/plenary.nvim' },
+      lazy = false,
+      build = 'npm install -g mcp-hub@latest',
+      opts = {
+        config = vim.fn.expand '~/.config/nvim/mcphub/servers.json',
+      },
+      config = function(_, opts)
+        require('mcphub').setup(opts)
+      end,
+    },
+  },
 
-    -- Base opts for this adapter
-    local adapter_opts = {
-      stream = true,
-      vision = false,
-    }
+  opts = function()
+    if not vim.env.CODECOMPANION_TOKEN_PATH then
+      vim.env.CODECOMPANION_TOKEN_PATH = vim.fn.expand '~/.config'
+    end
 
     local function map(modes, lhs, rhs, desc)
-      vim.keymap.set(modes, lhs, rhs, { noremap = true, silent = true, desc = desc })
+      vim.keymap.set(modes, lhs, rhs, {
+        noremap = true,
+        silent = true,
+        desc = desc,
+      })
     end
 
-    -- Chat toggle
-    map('n', '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', 'CodeCompanion: Toggle chat')
-
-    -- Inline assistant:
-    -- Normal mode can stay <cmd>...
-    map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion: Inline assistant')
-
-    -- Visual mode MUST use a range (:'<,'>) or selection context won’t apply properly
-    map('v', '<leader>ca', ":'<,'>CodeCompanion<CR>", 'CodeCompanion: Inline assistant (selection)')
-
-    -- Command mode helper
-    map('n', '<leader>cm', '<cmd>CodeCompanionCmd<CR>', 'CodeCompanion: Command mode')
+    map('n', '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', 'CodeCompanion chat')
+    map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion inline')
+    map('v', '<leader>ca', ":'<,'>CodeCompanion<CR>", 'CodeCompanion inline selection')
+    map('n', '<leader>cm', '<cmd>CodeCompanionCmd<CR>', 'CodeCompanion cmd')
+    map('n', '<leader>cp', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
+    map('n', '<leader>cs', '<cmd>MCPHub<CR>', 'MCPHub')
 
     return {
-      provider = 'telescope',
+      log_level = 'DEBUG',
+      send_code = true,
+      use_default_actions = true,
+      use_default_prompts = true,
+
+      display = {
+        action_palette = {
+          provider = 'telescope',
+        },
+        chat = {
+          show_context = true,
+          show_tools_processing = true,
+          show_token_count = true,
+        },
+      },
+
       strategies = {
         chat = {
-          adapter = 'qwen_coder',
+          adapter = 'copilot',
           roles = {
             user = 'Gus',
-            llm = chosen_model,
+            llm = 'Copilot',
           },
-        },
-        inline = { adapter = 'qwen_coder' },
-        cmd = { adapter = 'qwen_coder' },
-      },
-      adapters = {
-        http = {
-          qwen_coder = function()
-            return require('codecompanion.adapters').extend('ollama', {
-              name = 'Qwen Coder (Ollama)',
-              opts = adapter_opts,
-              schema = {
-                model = {
-                  default = chosen_model,
+          tools = {
+            opts = {
+              auto_submit_errors = true,
+              auto_submit_success = true,
+              default_tools = {
+                'agent',
+                'read_file',
+                'file_search',
+                'grep_search',
+                'run_command',
+                'get_diagnostics',
+                'get_changed_files',
+              },
+            },
+            groups = {
+              ['repo_analyst'] = {
+                description = 'Analyse and summarise the codebase before editing',
+                system_prompt = [[
+You are a repository analyst working inside Neovim.
+Your first job is to understand the codebase before proposing changes.
+
+Rules:
+- Prefer searching and reading before editing.
+- Identify the most relevant files first.
+- Summaries must mention file paths and responsibilities.
+- For architecture questions, explain entrypoints, data flow, abstractions, and risks.
+- Do not edit files unless explicitly asked.
+                ]],
+                tools = {
+                  'read_file',
+                  'file_search',
+                  'grep_search',
+                  'run_command',
+                  'get_diagnostics',
                 },
-                think = {
-                  default = false,
-                },
-                keep_alive = {
-                  default = '5m',
+                opts = {
+                  collapse_tools = true,
+                  ignore_system_prompt = true,
+                  ignore_tool_system_prompt = true,
                 },
               },
-            })
+            },
+          },
+        },
+
+        inline = {
+          adapter = 'copilot',
+        },
+
+        cmd = {
+          adapter = 'copilot',
+        },
+      },
+
+      adapters = {
+        http = {
+          copilot = function()
+            return require('codecompanion.adapters').extend('copilot', {})
           end,
+        },
+      },
+
+      extensions = {
+        mcphub = {
+          callback = 'mcphub.extensions.codecompanion',
+          opts = {
+            make_tools = true,
+            show_server_tools_in_chat = true,
+            add_mcp_prefix_to_tool_names = true,
+            show_result_in_chat = true,
+            make_vars = false,
+            make_slash_commands = true,
+          },
         },
       },
     }
