@@ -42,10 +42,12 @@ return {
     map('n', '<leader>cs', '<cmd>MCPHub<CR>', 'MCPHub')
 
     return {
-      log_level = 'DEBUG',
-      send_code = true,
-      use_default_actions = true,
-      use_default_prompts = true,
+      opts = {
+        log_level = 'DEBUG',
+        send_code = true,
+        use_default_actions = true,
+        use_default_prompts = true,
+      },
 
       display = {
         action_palette = {
@@ -58,7 +60,7 @@ return {
         },
       },
 
-      strategies = {
+      interactions = {
         chat = {
           adapter = 'copilot',
           roles = {
@@ -121,8 +123,18 @@ Rules:
 
       adapters = {
         http = {
+          opts = {
+            show_model_choices = true,
+          },
+
           copilot = function()
-            return require('codecompanion.adapters').extend('copilot', {})
+            return require('codecompanion.adapters').extend('copilot', {
+              schema = {
+                model = {
+                  default = 'gpt-5-mini',
+                },
+              },
+            })
           end,
         },
       },
@@ -133,7 +145,7 @@ Rules:
           opts = {
             make_tools = true,
             show_server_tools_in_chat = true,
-            add_mcp_prefix_to_tool_names = true,
+            add_mcp_prefix_to_tool_names = false,
             show_result_in_chat = true,
             make_vars = false,
             make_slash_commands = true,
