@@ -1,59 +1,44 @@
 -- [[ Configure and install plugins ]]
---
 require 'custom_modules.planning_index'
 
 require('lazy').setup({
-
   require 'kickstart.plugins.quench',
-
   require 'kickstart.plugins.csvview',
-
   require 'kickstart.plugins.markdown_plus',
-
   -- require 'kickstart.plugins.clangd_extension',
-
   require 'kickstart.plugins.incline',
-
   require 'kickstart.plugins.fugitive',
-
   require 'kickstart.plugins.copilot',
-
   require 'kickstart.plugins.code-companion',
-
   require 'kickstart.plugins.render-markdown',
-
   require 'kickstart.plugins.snacks',
-
   require 'kickstart.plugins.gitsigns',
-
   require 'kickstart.plugins.which-key',
-
   require 'kickstart.plugins.telescope',
-
   require 'kickstart.plugins.lspconfig',
-
   require 'kickstart.plugins.conform',
-
   require 'kickstart.plugins.blink-cmp',
-
   require 'kickstart.plugins.colorscheme',
-
   require 'kickstart.plugins.todo-comments',
-
   require 'kickstart.plugins.mini',
-
   require 'kickstart.plugins.treesitter',
-
   require 'kickstart.plugins.debug',
-
   require 'kickstart.plugins.lint',
-
   -- require 'kickstart.plugins.autopairs',
-
   require 'kickstart.plugins.neo-tree',
 }, {
-  ui = {
+  pkg = {
+    sources = {
+      'lazy',
+      'packspec',
+    },
+  },
 
+  rocks = {
+    enabled = false,
+  },
+
+  ui = {
     icons = vim.g.have_nerd_font and {} or {
       cmd = '⌘',
       config = '🛠',
