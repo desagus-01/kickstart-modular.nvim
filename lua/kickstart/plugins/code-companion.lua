@@ -1,16 +1,14 @@
 return {
   'olimorris/codecompanion.nvim',
   dependencies = {
-    'nvim-lua/plenary.nvim',
-    {
-      'nvim-treesitter/nvim-treesitter',
-      build = ':TSUpdate',
-      lazy = false,
-    },
     {
       'ravitemer/mcphub.nvim',
-      dependencies = { 'nvim-lua/plenary.nvim' },
+      dependencies = {
+        { 'nvim-lua/plenary.nvim', version = false },
+        'franco-ruggeri/codecompanion-spinner.nvim',
+      },
       lazy = false,
+
       build = 'npm install -g mcp-hub@latest',
       opts = {
         config = vim.fn.expand '~/.config/nvim/mcphub/servers.json',
@@ -140,6 +138,7 @@ Rules:
       },
 
       extensions = {
+        spinner = {},
         mcphub = {
           callback = 'mcphub.extensions.codecompanion',
           opts = {
