@@ -40,12 +40,6 @@ end
 ---------------------------------------------------------------------
 -- 2.  Float opener  (unchanged except for path choice)
 ---------------------------------------------------------------------
-local ui = vim.api.nvim_list_uis()[1]
-local gwidth = ui.width
-local gheight = ui.height
-local width = math.floor(gwidth * 0.8)
-local height = math.floor(gheight * 0.8)
-
 local buf, win
 
 local function close_float()
@@ -63,6 +57,12 @@ function M.open()
   if not path then
     return
   end -- cancelled
+
+  local ui = vim.api.nvim_list_uis()[1]
+  local gwidth = ui.width
+  local gheight = ui.height
+  local width = math.floor(gwidth * 0.8)
+  local height = math.floor(gheight * 0.8)
 
   buf = vim.api.nvim_create_buf(false, true)
   win = vim.api.nvim_open_win(buf, true, {

@@ -97,6 +97,11 @@ vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
 
+-- Snacks lazygit
+vim.keymap.set('n', '<leader>lg', function()
+  Snacks.lazygit()
+end, { desc = 'LazyGit' })
+
 -- quick save, quit and quit and save
 vim.keymap.set('n', '<leader>qw', function()
   local file_name = vim.fn.expand '%:t'
@@ -145,18 +150,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- Todos stuff
-local todo = require -- tiny alias so we don't type the full path twice
-
 vim.keymap.set('n', '<leader>oo', function()
-  todo('custom_modules.floating_todo').open()
+  require('custom_modules.floating_todo').open()
 end, { desc = 'Open TODO list' })
 
 vim.keymap.set('n', '<leader>oa', function()
-  todo('custom_modules.floating_todo').append()
+  require('custom_modules.floating_todo').append()
 end, { desc = 'Add to TODO list' })
 
 -- auto move todos in .md
-local todo = require 'custom_modules.move_todos'
+local move_todos = require 'custom_modules.move_todos'
 vim.api.nvim_create_augroup('AutoMoveTodosOnMarkdown', { clear = true })
 
 vim.api.nvim_create_autocmd('BufWritePre', {
@@ -166,7 +169,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     for _, line in ipairs(lines) do
       if line:match '> %[%!TODO%]' then
-        todo.move_completed_todos()
+        move_todos.move_completed_todos()
         break
       end
     end
@@ -200,8 +203,47 @@ vim.keymap.set('n', 'Y', function()
   vim.notify('Yanked whole buffer to clipboard (+)', vim.log.levels.INFO)
 end, { desc = 'Yank whole buffer to clipboard' })
 
+-- Builtin completion navigation
+vim.keymap.set('i', '<Tab>', function()
+  return vim.fn.pumvisible() == 1 and '<C-n>' or '<Tab>'
+end, { expr = true, desc = 'Next completion item' })
+
+vim.keymap.set('i', '<S-Tab>', function()
+  return vim.fn.pumvisible() == 1 and '<C-p>' or '<S-Tab>'
+end, { expr = true, desc = 'Prev completion item' })
+
+vim.keymap.set('i', '<CR>', function()
+  return vim.fn.pumvisible() == 1 and '<C-y>' or '<CR>'
+end, { expr = true, desc = 'Confirm completion' })
+
+-- Diagnostic navigation (0.12 unified API)
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump { count = 1, float = true }
+end, { desc = 'Next Diagnostic' })
+
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump { count = -1, float = true }
+end, { desc = 'Prev Diagnostic' })
+
+vim.keymap.set('n', ']e', function()
+  vim.diagnostic.jump { count = 1, severity = vim.diagnostic.severity.ERROR, float = true }
+end, { desc = 'Next Error' })
+
+vim.keymap.set('n', '[e', function()
+  vim.diagnostic.jump { count = -1, severity = vim.diagnostic.severity.ERROR, float = true }
+end, { desc = 'Prev Error' })
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
 
-vim.keymap.set('n', '<leader>rf', vim.lsp.buf.rename, { desc = 'Rename (LSP)' })
-
 vim.keymap.set('n', '<leader>qm', 'g<', { desc = 'Show message history', remap = true })
+
+-- Built-in undotree (0.12)
+vim.keymap.set('n', '<leader>tu', function()
+  vim.cmd 'packadd nvim.undotree'
+  vim.cmd 'Undotree'
+end, { desc = '[T]oggle [U]ndotree' })
+
+-- Restart Neovim (0.12) — reattaches all UIs
+vim.keymap.set('n', '<leader>qn', '<cmd>restart<CR>', { desc = 'Restart Neovim' })
+
+-- Write all buffers, creating parent dirs if needed (0.12)
+vim.keymap.set('n', '<leader>qW', '<cmd>wall ++p<CR>', { desc = 'Save all files (create dirs)' })

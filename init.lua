@@ -10,6 +10,9 @@ vim.opt.fillchars = { eob = ' ' }
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+-- Add Mason bin to PATH so native vim.lsp can find installed servers
+vim.env.PATH = vim.fn.stdpath 'data' .. '/mason/bin:' .. vim.env.PATH
+
 -- [[ Setting options ]]
 require 'options'
 
@@ -21,3 +24,6 @@ require 'lazy-bootstrap'
 
 -- [[ Configure and install plugins ]]
 require 'lazy-plugins'
+
+-- [[ LSP configuration (0.12 native) ]]
+require 'lsp'

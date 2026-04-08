@@ -201,7 +201,7 @@ return {
           },
         }
 
-        require('mini.comment').setup()
+        -- mini.comment removed — Neovim 0.10+ has built-in gc/gcc commenting
 
         -- local statusline = require 'mini.statusline'
         -- statusline.setup { use_icons = vim.g.have_nerd_font }
