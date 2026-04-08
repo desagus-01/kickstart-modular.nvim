@@ -10,18 +10,20 @@ vim.keymap.set('n', '<leader>qg', function()
 
     local cmd = 'git add . && git commit -m "' .. msg .. '" && git push'
 
-    floatterm.float_term(cmd, {
-      title = 'Git: add + commit + push',
-      auto_close = true,
-      height_ratio = 0.30,
-      width_ratio = 0.75,
-      close_keys = { 'q', '<Esc>' },
-      on_exit = function(code, ctx)
-        if code ~= 0 then
-          vim.notify('Git command failed (exit ' .. code .. ')', vim.log.levels.WARN)
-        end
-      end,
-    })
+    vim.schedule(function()
+      floatterm.float_term(cmd, {
+        title = 'Git: add + commit + push',
+        auto_close = true,
+        height_ratio = 0.30,
+        width_ratio = 0.75,
+        close_keys = { 'q', '<Esc>' },
+        on_exit = function(code, ctx)
+          if code ~= 0 then
+            vim.notify('Git command failed (exit ' .. code .. ')', vim.log.levels.WARN)
+          end
+        end,
+      })
+    end) -- end vim.schedule
   end)
 end, { desc = 'Quick Git Commit Push (float)' })
 
@@ -201,3 +203,5 @@ end, { desc = 'Yank whole buffer to clipboard' })
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
 
 vim.keymap.set('n', '<leader>rf', vim.lsp.buf.rename, { desc = 'Rename (LSP)' })
+
+vim.keymap.set('n', '<leader>qm', 'g<', { desc = 'Show message history', remap = true })
