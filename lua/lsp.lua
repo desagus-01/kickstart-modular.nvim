@@ -118,13 +118,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
 -- ── Enable servers ──────────────────────────────────────────────
 vim.lsp.enable {
   'lua_ls',
-  'clangd',
   'rust_analyzer',
   'pyrefly',
-  'zls',
+  -- 'zls',
   'terraformls',
-  'dockerls',
-  'docker_compose_language_service',
+  -- 'dockerls',
+  -- 'docker_compose_language_service',
 }
 
 -- ── On-type formatting (0.12) ───────────────────────────────────
