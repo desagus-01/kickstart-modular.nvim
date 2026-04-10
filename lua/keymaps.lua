@@ -247,3 +247,10 @@ vim.keymap.set('n', '<leader>qn', '<cmd>restart<CR>', { desc = 'Restart Neovim' 
 
 -- Write all buffers, creating parent dirs if needed (0.12)
 vim.keymap.set('n', '<leader>qW', '<cmd>wall ++p<CR>', { desc = 'Save all files (create dirs)' })
+
+-- Quick restart
+vim.keymap.set('n', '<leader>R', function()
+  local session = vim.fn.stdpath 'state' .. '/restart_session.vim'
+  vim.cmd('mksession! ' .. vim.fn.fnameescape(session))
+  vim.cmd('restart source ' .. vim.fn.fnameescape(session))
+end, { desc = 'Restart Neovim' })
