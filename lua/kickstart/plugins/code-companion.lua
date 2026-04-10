@@ -20,6 +20,8 @@ return {
   },
 
   opts = function()
+    local model_name = 'gpt-5-mini'
+
     if not vim.env.CODECOMPANION_TOKEN_PATH then
       vim.env.CODECOMPANION_TOKEN_PATH = vim.fn.expand '~/.config'
     end
@@ -34,7 +36,8 @@ return {
 
     map('n', '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', 'CodeCompanion chat')
     map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion inline')
-    map('v', '<leader>ca', ":'<,'>CodeCompanion<CR>", 'CodeCompanion inline selection')
+    map('v', '<leader>ci', ":'<,'>CodeCompanion<CR>", 'CodeCompanion inline selection')
+    map('v', '<leader>cs', ":'<,'>CodeCompanionChat<CR>", 'CodeCompanion chat selection')
     map('n', '<leader>cm', '<cmd>CodeCompanionCmd<CR>', 'CodeCompanion cmd')
     map('n', '<leader>cp', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
     map('n', '<leader>cs', '<cmd>MCPHub<CR>', 'MCPHub')
@@ -63,7 +66,7 @@ return {
           adapter = 'copilot',
           roles = {
             user = 'Gus',
-            llm = 'Copilot',
+            llm = '🤖 Copilot (' .. model_name .. ')',
           },
           tools = {
             opts = {
@@ -129,7 +132,7 @@ Rules:
             return require('codecompanion.adapters').extend('copilot', {
               schema = {
                 model = {
-                  default = 'gpt-5-mini',
+                  default = model_name,
                 },
               },
             })
