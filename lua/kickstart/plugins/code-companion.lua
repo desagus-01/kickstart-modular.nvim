@@ -58,6 +58,12 @@ return {
           show_context = true,
           show_tools_processing = true,
           show_token_count = true,
+
+          window = {
+            layout = 'vertical',
+            width = 0.35, -- 35% of the editor width
+            -- or width = 45 for a fixed number of columns
+          },
         },
       },
 
@@ -74,6 +80,7 @@ return {
               auto_submit_success = true,
               default_tools = {
                 'agent',
+                'mcphub',
                 'read_file',
                 'file_search',
                 'grep_search',
@@ -82,34 +89,7 @@ return {
                 'get_changed_files',
               },
             },
-            groups = {
-              ['repo_analyst'] = {
-                description = 'Analyse and summarise the codebase before editing',
-                system_prompt = [[
-You are a repository analyst working inside Neovim.
-Your first job is to understand the codebase before proposing changes.
-
-Rules:
-- Prefer searching and reading before editing.
-- Identify the most relevant files first.
-- Summaries must mention file paths and responsibilities.
-- For architecture questions, explain entrypoints, data flow, abstractions, and risks.
-- Do not edit files unless explicitly asked.
-                ]],
-                tools = {
-                  'read_file',
-                  'file_search',
-                  'grep_search',
-                  'run_command',
-                  'get_diagnostics',
-                },
-                opts = {
-                  collapse_tools = true,
-                  ignore_system_prompt = true,
-                  ignore_tool_system_prompt = true,
-                },
-              },
-            },
+            groups = {},
           },
         },
 
@@ -137,6 +117,14 @@ Rules:
               },
             })
           end,
+        },
+      },
+
+      prompt_library = {
+        markdown = {
+          dirs = {
+            vim.fn.stdpath 'config' .. '/prompts',
+          },
         },
       },
 

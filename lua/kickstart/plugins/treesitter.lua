@@ -8,6 +8,7 @@ return {
         'bash',
         'c',
         'cpp',
+        'yaml',
         'diff',
         'hcl',
         'html',
