@@ -87,3 +87,5 @@ vim.o.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 vim.o.foldenable = true -- start with folds calculated
 vim.o.foldlevel = 99 -- but show them open by default
 -- vim: ts=2 sts=2 sw=2 et
+--
+vim.o.termguicolors = true
