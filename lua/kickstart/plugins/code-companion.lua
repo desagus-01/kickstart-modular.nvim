@@ -38,9 +38,8 @@ return {
     map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion inline')
     map('v', '<leader>ci', ":'<,'>CodeCompanion<CR>", 'CodeCompanion inline selection')
     map('v', '<leader>cs', ":'<,'>CodeCompanionChat<CR>", 'CodeCompanion chat selection')
-    map('n', '<leader>cm', '<cmd>CodeCompanionCmd<CR>', 'CodeCompanion cmd')
     map('n', '<leader>cp', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
-    map('n', '<leader>cs', '<cmd>MCPHub<CR>', 'MCPHub')
+    map('n', '<leader>cm', '<cmd>MCPHub<CR>', 'MCPHub')
 
     return {
       opts = {
@@ -57,12 +56,12 @@ return {
         chat = {
           show_context = true,
           show_tools_processing = true,
+          show_header_separator = true,
           show_token_count = true,
 
           window = {
             layout = 'vertical',
-            width = 0.35, -- 35% of the editor width
-            -- or width = 45 for a fixed number of columns
+            width = 0.35,
           },
         },
       },
@@ -80,7 +79,7 @@ return {
               auto_submit_success = true,
               default_tools = {
                 'agent',
-                'mcphub',
+                'mcp',
                 'read_file',
                 'file_search',
                 'grep_search',

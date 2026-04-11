@@ -1,62 +1,63 @@
 {
   "mcpServers": {
     "brave": {
-      "command": "npx",
       "args": [
         "-y",
         "@brave/brave-search-mcp-server",
         "--transport",
         "stdio"
       ],
+      "command": "npx",
       "disabled": false,
       "env": {
         "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
       }
     },
-
-    "github": {
+    "filesystem": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "~/.config/nvim"
+      ],
       "command": "npx",
+      "disabled": false
+    },
+    "github": {
       "args": [
         "-y",
         "@modelcontextprotocol/server-github"
       ],
+      "command": "npx",
       "disabled": false,
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
     },
-
-    "sequential-thinking": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
-      "disabled": false
-    },
-
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/home/gus/code",
-        "/home/gus/.config/nvim",
-        "/home/gus/notes"
-      ],
-      "disabled": false
-    },
-
-    "memory_mcp": {
-      "command": "npx",
+    "memory": {
       "args": [
         "-y",
         "@modelcontextprotocol/server-memory"
       ],
+      "command": "npx"
+    },
+    "memory_mcp": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "command": "npx",
       "disabled": false,
       "env": {
         "MCP_MEMORY_DATA_FILE": "${env:HOME}/.local/share/mcp/memory.jsonl"
       }
+    },
+    "sequential-thinking": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "command": "npx",
+      "disabled": false
     }
   }
 }
