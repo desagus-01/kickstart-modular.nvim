@@ -13,15 +13,6 @@
         "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
       }
     },
-    "filesystem": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "~/.config/nvim"
-      ],
-      "command": "npx",
-      "disabled": false
-    },
     "github": {
       "args": [
         "-y",

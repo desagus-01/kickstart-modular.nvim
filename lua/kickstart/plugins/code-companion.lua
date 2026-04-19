@@ -79,13 +79,6 @@ return {
               auto_submit_success = true,
               default_tools = {
                 'agent',
-                'mcp',
-                'read_file',
-                'file_search',
-                'grep_search',
-                'run_command',
-                'get_diagnostics',
-                'get_changed_files',
               },
             },
             groups = {},
