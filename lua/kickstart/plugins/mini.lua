@@ -200,14 +200,6 @@ return {
             U = ai.gen_spec.function_call { name_pattern = '[%w_]' },
           },
         }
-
-        -- mini.comment removed — Neovim 0.10+ has built-in gc/gcc commenting
-
-        -- local statusline = require 'mini.statusline'
-        -- statusline.setup { use_icons = vim.g.have_nerd_font }
-        -- statusline.section_location = function()
-        --   return '%2l:%-2v'
-        -- end
       end)
     end,
   },
