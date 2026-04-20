@@ -6,7 +6,6 @@ opts:
   alias: caveman
   is_slash_cmd: true
   auto_submit: true
-  ignore_system_prompt: true
 ---
 
 ## system

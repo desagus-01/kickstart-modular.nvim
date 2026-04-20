@@ -24,13 +24,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
     },
-    "memory": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ],
-      "command": "npx"
-    },
     "memory_mcp": {
       "args": [
         "-y",
