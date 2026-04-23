@@ -19,7 +19,7 @@ return {
   },
 
   opts = function()
-    local model_name = 'gpt-5-mini'
+    local model_name = 'claude-sonnet-4.6'
 
     if not vim.env.CODECOMPANION_TOKEN_PATH then
       vim.env.CODECOMPANION_TOKEN_PATH = vim.fn.expand '~/.config'
