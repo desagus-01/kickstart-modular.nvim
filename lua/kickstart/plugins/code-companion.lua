@@ -359,6 +359,16 @@ Working context: #{buffer}{watch}]],
             user = 'Gus',
             llm = '\240\159\164\150 Copilot (' .. model_name .. ')',
           },
+          opts = {
+            context_management = {
+              trigger = 0.75,
+
+              enabled = function(adapter)
+                return adapter.type == 'http'
+              end,
+            },
+          },
+
           tools = {
             opts = {
               auto_submit_errors = true,
