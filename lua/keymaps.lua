@@ -97,11 +97,6 @@ vim.keymap.set({ 'n', 't' }, '<C-`>', function()
   require('snacks.terminal').toggle()
 end, { desc = 'Toggle Snacks terminal' })
 
--- Snacks lazygit
-vim.keymap.set('n', '<leader>lg', function()
-  Snacks.lazygit()
-end, { desc = 'LazyGit' })
-
 -- quick save, quit and quit and save
 vim.keymap.set('n', '<leader>qw', function()
   local file_name = vim.fn.expand '%:t'
@@ -176,25 +171,6 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   end,
 })
 
--- Complete todo
-vim.keymap.set('n', '<leader>xc', function()
-  local line = vim.api.nvim_get_current_line()
-  local new_line = line:gsub('(%s*%- %[%s*%])', ' - [X]')
-  vim.api.nvim_set_current_line(new_line)
-end, { desc = '[C]omplete TODO' })
-
--- Create todo
-vim.keymap.set('n', '<leader>xa', function()
-  local line = vim.api.nvim_get_current_line()
-  local prefix = '> - [ ] '
-  local new_line = prefix .. line
-  vim.api.nvim_set_current_line(new_line)
-  local row = vim.api.nvim_win_get_cursor(0)[1]
-  local col = new_line:find '%[ %]' + 8
-  vim.api.nvim_win_set_cursor(0, { row, col })
-  vim.cmd 'startinsert'
-end, { desc = '[A]dd TODO' })
-
 -- yank whole doc
 vim.keymap.set('n', 'Y', function()
   local view = vim.fn.winsaveview()
@@ -241,9 +217,6 @@ vim.keymap.set('n', '<leader>tu', function()
   vim.cmd 'packadd nvim.undotree'
   vim.cmd 'Undotree'
 end, { desc = '[T]oggle [U]ndotree' })
-
--- Restart Neovim (0.12) — reattaches all UIs
-vim.keymap.set('n', '<leader>qn', '<cmd>restart<CR>', { desc = 'Restart Neovim' })
 
 -- Write all buffers, creating parent dirs if needed (0.12)
 vim.keymap.set('n', '<leader>qW', '<cmd>wall ++p<CR>', { desc = 'Save all files (create dirs)' })

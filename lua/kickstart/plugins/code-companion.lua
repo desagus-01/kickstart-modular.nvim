@@ -34,10 +34,10 @@ return {
     end
 
     map('n', '<leader>cc', '<cmd>CodeCompanionChat Toggle<CR>', 'CodeCompanion chat')
-    map('n', '<leader>ca', '<cmd>CodeCompanion<CR>', 'CodeCompanion inline')
+    map('n', '<leader>ci', '<cmd>CodeCompanion<CR>', 'CodeCompanion inline')
     map('v', '<leader>ci', ":'<,'>CodeCompanion<CR>", 'CodeCompanion inline selection')
-    map('v', '<leader>cs', ":'<,'>CodeCompanionChat<CR>", 'CodeCompanion chat selection')
-    map('n', '<leader>cp', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
+    map('v', '<leader>cc', ":'<,'>CodeCompanionChat<CR>", 'CodeCompanion chat selection')
+    map('n', '<leader>ca', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
     map('n', '<leader>cm', '<cmd>MCPHub<CR>', 'MCPHub')
     -- NOTE: YOLO mode toggle is built-in: `gty` inside any chat buffer.
 

@@ -129,19 +129,6 @@ return {
       end, { desc = 'Toggle Tabline' })
 
       -- =====================================================
-      -- mini.bufremove (cheap; keep immediate)
-      -- =====================================================
-      bufremove.setup { silent = true }
-
-      vim.keymap.set('n', '<leader>bd', function()
-        bufremove.delete(0, false)
-      end, { desc = 'Delete buffer' })
-
-      vim.keymap.set('n', '<leader>bD', function()
-        bufremove.delete(0, true)
-      end, { desc = 'Delete buffer (force)' })
-
-      -- =====================================================
       -- Other mini modules (deferred; DOES NOT affect tabline look)
       -- =====================================================
       vim.schedule(function()
