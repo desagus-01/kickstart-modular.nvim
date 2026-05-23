@@ -39,7 +39,6 @@ return {
     map('v', '<leader>cc', ":'<,'>CodeCompanionChat<CR>", 'CodeCompanion chat selection')
     map('n', '<leader>ca', '<cmd>CodeCompanionActions<CR>', 'CodeCompanion actions')
     map('n', '<leader>cm', '<cmd>MCPHub<CR>', 'MCPHub')
-    -- NOTE: YOLO mode toggle is built-in: `gty` inside any chat buffer.
 
     -- =========================================================================
     -- HELPERS
@@ -59,6 +58,44 @@ return {
         end
       end
       return vim.trim(table.concat(result, '\n'))
+    end
+
+    local function get_current_model_name(adapter)
+      -- HTTP adapters: Copilot, OpenAI, Anthropic, etc.
+      if adapter.type == 'http' and adapter.schema and adapter.schema.model then
+        local model = adapter.schema.model.default
+        if type(model) == 'function' then
+          model = model(adapter)
+        end
+
+        if model and model ~= '' then
+          return tostring(model)
+        end
+      end
+
+      -- ACP adapters: Codex, Claude Code, Gemini CLI, etc.
+      if adapter.type == 'acp' and adapter.defaults then
+        if adapter.defaults.model then
+          return tostring(adapter.defaults.model)
+        end
+
+        if adapter.defaults.session_config_options and adapter.defaults.session_config_options.model then
+          return tostring(adapter.defaults.session_config_options.model)
+        end
+      end
+
+      return nil
+    end
+
+    local function llm_role(adapter)
+      local adapter_name = adapter.formatted_name or adapter.name or 'LLM'
+      local model = get_current_model_name(adapter)
+
+      if model and model ~= 'default' then
+        return '🤖 ' .. adapter_name .. ' (' .. model .. ')'
+      end
+
+      return '🤖 ' .. adapter_name
     end
 
     -- =========================================================================
@@ -146,7 +183,7 @@ We will loop until tests pass.]],
       -- P4: Plan → Implement → Review
       -- Three-phase pipeline: architect plans, agent implements, reviewer checks.
       -- -----------------------------------------------------------------------
-      ['\240\159\167\160 Plan \226\134\146 Implement \226\134\146 Review'] = {
+      ['🧠 Plan → Implement → Review'] = {
         interaction = 'workflow',
         description = 'Architect plans, agent implements, reviewer checks for issues',
         tools = {
@@ -234,11 +271,11 @@ Implementation complete. Now review it:
 2. Use get_diagnostics on each changed file
 3. Check for: bugs, missing error handling, security issues, logic errors
 4. Rate each finding:
-   - \240\159\148\180 Critical — will cause bugs or security issues
-   - \240\159\237\161 Warning  — should fix, quality concern
-   - \240\159\237\162 Suggest  — nice to have
+   - 🔴 Critical — will cause bugs or security issues
+   - 🟡 Warning  — should fix, quality concern
+   - 🟢 Suggest  — nice to have
 
-If there are \240\159\148\180 Critical findings, list them clearly.
+If there are 🔴 Critical findings, list them clearly.
 If all clear, say so explicitly.]],
             },
           },
@@ -249,7 +286,7 @@ If all clear, say so explicitly.]],
       -- P5: Research → Implement
       -- Research a topic with brave search, then implement a solution.
       -- -----------------------------------------------------------------------
-      ['\240\159\148\172 Research \226\134\146 Implement'] = {
+      ['🔬 Research → Implement'] = {
         interaction = 'workflow',
         description = 'Research a topic with brave search, then implement a solution',
         tools = {
@@ -354,11 +391,17 @@ Working context: #{buffer}{watch}]],
 
       interactions = {
         chat = {
-          adapter = 'copilot',
+          -- Copilot remains the default chat adapter.
+          adapter = {
+            name = 'copilot',
+            model = model_name,
+          },
+
           roles = {
             user = 'Gus',
-            llm = '\240\159\164\150 Copilot (' .. model_name .. ')',
+            llm = llm_role,
           },
+
           opts = {
             context_management = {
               trigger = 0.75,
@@ -551,10 +594,28 @@ Working context: #{buffer}{watch}]],
       },
 
       adapters = {
+        acp = {
+          opts = {
+            -- Only show ACP adapters explicitly configured here.
+            show_presets = false,
+          },
+
+          codex = function()
+            return require('codecompanion.adapters').extend('codex', {
+              defaults = {
+                auth_method = 'chatgpt',
+              },
+            })
+          end,
+        },
+
         http = {
           opts = {
+            -- Only show HTTP adapters explicitly configured here.
+            show_presets = false,
             show_model_choices = true,
           },
+
           copilot = function()
             return require('codecompanion.adapters').extend('copilot', {
               schema = {

@@ -210,9 +210,10 @@ vim.keymap.set('n', '[e', function()
 end, { desc = 'Prev Error' })
 vim.keymap.set('n', '<leader>rp', vim.lsp.buf.rename, { desc = 'Rename in Project' })
 
-vim.keymap.set('n', '<leader>qm', 'g<', { desc = 'Show message history', remap = true })
+vim.keymap.set('n', '<leader>qm', function()
+  Snacks.notifier.show_history()
+end, { desc = 'Show notification history' }) -- Built-in undotree (0.12)
 
--- Built-in undotree (0.12)
 vim.keymap.set('n', '<leader>tu', function()
   vim.cmd 'packadd nvim.undotree'
   vim.cmd 'Undotree'
