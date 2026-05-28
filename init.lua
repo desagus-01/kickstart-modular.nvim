@@ -4,8 +4,38 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- Remove annoying squigglies
-vim.opt.fillchars = { eob = ' ' }
+-- Make window separators easier to see
+vim.opt.fillchars = {
+  eob = ' ', -- Remove annoying squigglies
+  vert = '│',
+  horiz = '━',
+  horizup = '┻',
+  horizdown = '┳',
+  vertleft = '┫',
+  vertright = '┣',
+  verthoriz = '╋',
+}
+
+local function set_window_separator_highlight()
+  vim.api.nvim_set_hl(0, 'WinSeparator', {
+    fg = '#89b4fa',
+    bg = 'NONE',
+    bold = true,
+  })
+
+  -- Fallback for older themes / older Neovim versions
+  vim.api.nvim_set_hl(0, 'VertSplit', {
+    fg = '#89b4fa',
+    bg = 'NONE',
+    bold = true,
+  })
+end
+
+set_window_separator_highlight()
+
+vim.api.nvim_create_autocmd('ColorScheme', {
+  callback = set_window_separator_highlight,
+})
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
