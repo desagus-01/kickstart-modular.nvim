@@ -404,7 +404,11 @@ Working context: #{buffer}{watch}]],
 
           opts = {
             context_management = {
-              trigger = 0.75,
+
+              compaction = {
+                trigger = 0.85,
+              },
+              editing = { trigger = 0.65 },
 
               enabled = function(adapter)
                 return adapter.type == 'http'
