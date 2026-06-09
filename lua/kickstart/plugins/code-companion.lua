@@ -590,20 +590,30 @@ Working context: #{buffer}{watch}]],
           },
 
           opencode = function()
-            return require('codecompanion.adapters').extend('opencode', {
-              -- opencode manages its own model selection via its TUI/config,
-              -- so no schema.model override is needed here.
-              -- Add any defaults you want to pin, e.g.:
-              -- defaults = {
-              --   model = 'claude-sonnet-4-5',
-              -- },
-            })
+            return require('codecompanion.adapters').extend('opencode', {})
           end,
 
           codex = function()
             return require('codecompanion.adapters').extend('codex', {
               defaults = {
                 auth_method = 'chatgpt',
+              },
+            })
+          end,
+        },
+
+        http = {
+          opts = {
+            show_presets = false,
+            show_model_choices = true,
+          },
+
+          copilot = function()
+            return require('codecompanion.adapters').extend('copilot', {
+              schema = {
+                model = {
+                  default = 'claude-sonnet-4-6',
+                },
               },
             })
           end,
