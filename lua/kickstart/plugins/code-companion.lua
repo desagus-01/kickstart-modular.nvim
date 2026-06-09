@@ -19,8 +19,6 @@ return {
   },
 
   opts = function()
-    local model_name = 'claude-sonnet-4.6'
-
     if not vim.env.CODECOMPANION_TOKEN_PATH then
       vim.env.CODECOMPANION_TOKEN_PATH = vim.fn.expand '~/.config'
     end
@@ -73,7 +71,7 @@ return {
         end
       end
 
-      -- ACP adapters: Codex, Claude Code, Gemini CLI, etc.
+      -- ACP adapters: Codex, Claude Code, Gemini CLI, opencode, etc.
       if adapter.type == 'acp' and adapter.defaults then
         if adapter.defaults.model then
           return tostring(adapter.defaults.model)
@@ -391,11 +389,7 @@ Working context: #{buffer}{watch}]],
 
       interactions = {
         chat = {
-          -- Copilot remains the default chat adapter.
-          adapter = {
-            name = 'copilot',
-            model = model_name,
-          },
+          adapter = 'opencode', -- ← ACP adapter; model is managed by opencode itself
 
           roles = {
             user = 'Gus',
@@ -404,12 +398,12 @@ Working context: #{buffer}{watch}]],
 
           opts = {
             context_management = {
-
               compaction = {
                 trigger = 0.85,
               },
               editing = { trigger = 0.65 },
 
+              -- ACP adapters handle their own context; disable CC's compaction for them
               enabled = function(adapter)
                 return adapter.type == 'http'
               end,
@@ -421,14 +415,6 @@ Working context: #{buffer}{watch}]],
               auto_submit_errors = true,
               auto_submit_success = true,
             },
-
-            -- Uncomment to allow run_command to fire in YOLO mode (gty).
-            -- By default run_command prompts once per unique command.
-            -- Only enable if you trust the LLM not to run destructive commands.
-            -- ['run_command'] = {
-            --   opts = { allowed_in_yolo_mode = true },
-            -- },
-
             groups = {
               ['planner'] = {
                 description = 'Architecture planner — sequential thinking + memory, no code edits',
@@ -589,20 +575,30 @@ Working context: #{buffer}{watch}]],
         },
 
         inline = {
-          adapter = 'copilot',
+          adapter = 'opencode', -- ← switched from 'copilot'
         },
 
         cmd = {
-          adapter = 'copilot',
+          adapter = 'opencode', -- ← switched from 'copilot'
         },
       },
 
       adapters = {
         acp = {
           opts = {
-            -- Only show ACP adapters explicitly configured here.
             show_presets = false,
           },
+
+          opencode = function()
+            return require('codecompanion.adapters').extend('opencode', {
+              -- opencode manages its own model selection via its TUI/config,
+              -- so no schema.model override is needed here.
+              -- Add any defaults you want to pin, e.g.:
+              -- defaults = {
+              --   model = 'claude-sonnet-4-5',
+              -- },
+            })
+          end,
 
           codex = function()
             return require('codecompanion.adapters').extend('codex', {
@@ -612,27 +608,8 @@ Working context: #{buffer}{watch}]],
             })
           end,
         },
-
-        http = {
-          opts = {
-            -- Only show HTTP adapters explicitly configured here.
-            show_presets = false,
-            show_model_choices = true,
-          },
-
-          copilot = function()
-            return require('codecompanion.adapters').extend('copilot', {
-              schema = {
-                model = {
-                  default = model_name,
-                },
-              },
-            })
-          end,
-        },
       },
 
-      -- Merge markdown prompt dirs with Lua workflow entries
       prompt_library = vim.tbl_extend('force', {
         markdown = {
           dirs = {
