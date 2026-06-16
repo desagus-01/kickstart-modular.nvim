@@ -3,6 +3,7 @@ require 'custom_modules.planning_index'
 
 require('lazy').setup({
   require 'kickstart.plugins.quench',
+  require 'kickstart.plugins.diffview_plus',
   require 'kickstart.plugins.csvview',
   require 'kickstart.plugins.markdown_plus',
   require 'kickstart.plugins.incline',
