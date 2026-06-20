@@ -575,11 +575,11 @@ Working context: #{buffer}{watch}]],
         },
 
         inline = {
-          adapter = 'opencode', -- ← switched from 'copilot'
+          adapter = 'copilot',
         },
 
         cmd = {
-          adapter = 'opencode', -- ← switched from 'copilot'
+          adapter = 'opencode',
         },
       },
 
