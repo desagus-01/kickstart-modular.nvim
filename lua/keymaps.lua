@@ -214,6 +214,10 @@ vim.keymap.set('n', '<leader>qm', function()
   Snacks.notifier.show_history()
 end, { desc = 'Show notification history' }) -- Built-in undotree (0.12)
 
+vim.keymap.set('n', '<leader>qn', function()
+  Snacks.notifier.show_history()
+end, { desc = 'Show notification history' })
+
 vim.keymap.set('n', '<leader>tu', function()
   vim.cmd 'packadd nvim.undotree'
   vim.cmd 'Undotree'
