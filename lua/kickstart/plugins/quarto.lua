@@ -19,6 +19,17 @@ return {
       -- configured in lua/plugins/lsp.lua
       'jmbuhr/otter.nvim',
     },
+    config = function(_, opts)
+      require('quarto').setup(opts)
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'quarto',
+        callback = function()
+          pcall(vim.cmd.QuartoActivate)
+          pcall(require('otter').activate)
+        end,
+      })
+    end,
   },
 
   { -- directly open ipynb files as quarto docuements
