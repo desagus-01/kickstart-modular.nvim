@@ -1,6 +1,6 @@
 return {
   'yousefhadder/markdown-plus.nvim',
-  ft = 'markdown',
+  ft = { 'markdown', 'quarto' },
   opts = {
     list = {
       checkbox_completion = {

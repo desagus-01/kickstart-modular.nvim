@@ -367,13 +367,48 @@ return {
         },
       },
     },
+    config = function()
+      vim.api.nvim_set_hl(0, 'MoltenVirtualText', { link = 'NormalFloat' })
+
+      vim.api.nvim_set_hl(0, 'MoltenOutputWin', { link = 'NormalFloat' })
+
+      vim.api.nvim_set_hl(0, 'MoltenOutputFooter', { link = 'Comment' })
+    end,
 
     init = function()
       vim.g.molten_image_provider = 'image.nvim'
+
+      -- Inline output
       vim.g.molten_auto_open_output = false
       vim.g.molten_virt_text_output = true
       vim.g.molten_virt_lines_off_by_1 = true
       vim.g.molten_wrap_output = true
+      vim.g.molten_virt_text_max_lines = 8
+      vim.g.molten_virt_text_truncate = 'bottom'
+
+      -- Expanded output
+      vim.g.molten_enter_output_behavior = 'open_and_enter'
+
+      vim.g.molten_output_win_max_height = 30
+      vim.g.molten_output_win_max_width = 120
+
+      vim.g.molten_output_win_border = {
+        '╭',
+        '─',
+        '╮',
+        '│',
+        '╯',
+        '─',
+        '╰',
+        '│',
+      }
+
+      vim.g.molten_use_border_highlights = true
+      vim.g.molten_output_show_more = true
+
+      -- Once we leave/close the popup, don't redraw it.
+      vim.g.molten_output_win_hide_on_leave = true
+
       vim.g.molten_auto_init_behavior = 'raise'
       vim.g.molten_auto_open_html_in_browser = true
       vim.g.molten_tick_rate = 200
@@ -415,7 +450,72 @@ return {
 
     config = function(_, opts)
       require('quarto').setup(opts)
+      local function open_molten_output_centered()
+        -- Open AND enter Molten's output window.
+        vim.cmd 'noautocmd MoltenEnterOutput'
 
+        -- Let Molten finish constructing the float first.
+        vim.schedule(function()
+          local win = vim.api.nvim_get_current_win()
+
+          if not vim.api.nvim_win_is_valid(win) then
+            return
+          end
+
+          local cfg = vim.api.nvim_win_get_config(win)
+
+          -- If this isn't a floating window, something went wrong.
+          if not cfg.relative or cfg.relative == '' then
+            vim.notify('No Molten output window available for the current cell.', vim.log.levels.WARN)
+            return
+          end
+
+          -- Maximum desired popup size relative to the editor.
+          local max_width = math.floor(vim.o.columns * 0.80)
+          local max_height = math.floor(vim.o.lines * 0.70)
+
+          local width = math.min(cfg.width, max_width)
+          local height = math.min(cfg.height, max_height)
+
+          -- Center the window.
+          local row = math.floor((vim.o.lines - height) / 2) - 1
+          local col = math.floor((vim.o.columns - width) / 2)
+
+          row = math.max(row, 0)
+          col = math.max(col, 0)
+
+          vim.api.nvim_win_set_config(win, {
+            relative = 'editor',
+            anchor = 'NW',
+
+            row = row,
+            col = col,
+
+            width = width,
+            height = height,
+
+            zindex = 100,
+          })
+
+          local buf = vim.api.nvim_win_get_buf(win)
+
+          -- q = close popup and return to document
+          vim.keymap.set('n', 'q', '<cmd>q<CR>', {
+            buffer = buf,
+            silent = true,
+            nowait = true,
+            desc = 'Close Molten output',
+          })
+
+          -- Esc can close it too.
+          vim.keymap.set('n', '<Esc>', '<cmd>q<CR>', {
+            buffer = buf,
+            silent = true,
+            nowait = true,
+            desc = 'Close Molten output',
+          })
+        end)
+      end
       local runner = require 'quarto.runner'
 
       local function map(mode, lhs, rhs, desc)
@@ -459,7 +559,9 @@ return {
 
       map('n', '<leader>Qmh', ':MoltenHideOutput<CR>', 'Molten: hide output')
 
-      map('n', '<leader>Qmo', ':noautocmd MoltenEnterOutput<CR>', 'Molten: enter output')
+      map('n', '<leader>Qmo', open_molten_output_centered, 'Molten: open output')
+
+      map('n', '<leader>Qo', open_molten_output_centered, 'Molten: open output')
 
       map('n', '<leader>Qmp', ':MoltenImagePopup<CR>', 'Molten: image popup')
 
