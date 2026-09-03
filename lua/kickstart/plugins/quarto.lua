@@ -1,396 +1,601 @@
+-- ============================================================================
+-- KERNEL CONFIGURATION
+-- ============================================================================
+local R_KERNEL = 'ir'
+local BASH_KERNEL = 'bash'
+local PYTHON_FALLBACK_KERNEL = 'python3'
+
+local kernel_ids_by_buf = {}
+
+-- Kernel lifecycle state.
+-- MoltenInit creates the kernel, but the Jupyter kernel may not yet be ready
+-- to receive code. We keep callbacks queued until MoltenKernelReady fires.
+local ready_kernels = {}
+local starting_kernels = {}
+local kernel_waiters = {}
+
+-- ============================================================================
+-- GENERAL HELPERS
+-- ============================================================================
+
+local function contains(tbl, value)
+  for _, item in ipairs(tbl or {}) do
+    if item == value then
+      return true
+    end
+  end
+
+  return false
+end
+
+local function available_kernels()
+  local ok, kernels = pcall(vim.fn.MoltenAvailableKernels)
+
+  if not ok then
+    return {}
+  end
+
+  return kernels
+end
+
+local function local_running_kernels()
+  local ok, kernels = pcall(vim.fn.MoltenRunningKernels, true)
+
+  if not ok then
+    return {}
+  end
+
+  return kernels
+end
+
+local function kernel_map()
+  local buf = vim.api.nvim_get_current_buf()
+
+  if kernel_ids_by_buf[buf] == nil then
+    kernel_ids_by_buf[buf] = {}
+  end
+
+  return kernel_ids_by_buf[buf]
+end
+
+local molten_lifecycle_group = vim.api.nvim_create_augroup('QuartoMoltenKernelLifecycle', { clear = true })
+
+vim.api.nvim_create_autocmd('User', {
+  group = molten_lifecycle_group,
+  pattern = 'MoltenKernelReady',
+
+  callback = function(event)
+    local kernel_id = event.data and event.data.kernel_id
+
+    if not kernel_id then
+      return
+    end
+
+    ready_kernels[kernel_id] = true
+    starting_kernels[kernel_id] = nil
+
+    local waiters = kernel_waiters[kernel_id]
+
+    if not waiters then
+      return
+    end
+
+    kernel_waiters[kernel_id] = nil
+
+    -- Run all queued evaluations in the order they were requested.
+    vim.schedule(function()
+      for _, callback in ipairs(waiters) do
+        local ok, err = pcall(callback, kernel_id)
+
+        if not ok then
+          vim.notify(("Error executing code with kernel '%s': %s"):format(kernel_id, err), vim.log.levels.ERROR)
+        end
+      end
+    end)
+  end,
+})
+
+-- Clean our per-buffer bookkeeping when a buffer disappears.
+vim.api.nvim_create_autocmd('BufWipeout', {
+  group = molten_lifecycle_group,
+
+  callback = function(event)
+    kernel_ids_by_buf[event.buf] = nil
+  end,
+})
+
+local function when_kernel_ready(kernel_id, callback)
+  -- Kernel is already confirmed ready.
+  if ready_kernels[kernel_id] then
+    callback(kernel_id)
+    return
+  end
+
+  -- If we know that WE just started this kernel, wait for
+  -- MoltenKernelReady.
+  if starting_kernels[kernel_id] then
+    kernel_waiters[kernel_id] = kernel_waiters[kernel_id] or {}
+
+    table.insert(kernel_waiters[kernel_id], callback)
+
+    return
+  end
+
+  -- If the kernel already existed before our helper saw it, for example
+  -- because it was manually initialized, assume it is already usable.
+  ready_kernels[kernel_id] = true
+
+  callback(kernel_id)
+end
+
+-- ============================================================================
+-- KERNEL IDS
+-- ============================================================================
+local function kernel_id_matches_spec(kernel_id, kernel_spec)
+  if kernel_id == kernel_spec then
+    return true
+  end
+
+  local prefix = kernel_spec .. '_'
+
+  if kernel_id:sub(1, #prefix) ~= prefix then
+    return false
+  end
+
+  return tonumber(kernel_id:sub(#prefix + 1)) ~= nil
+end
+
+local function find_local_kernel_id(kernel_spec)
+  local running = local_running_kernels()
+  local map = kernel_map()
+
+  -- Prefer the ID we already remembered.
+  if map[kernel_spec] and contains(running, map[kernel_spec]) then
+    return map[kernel_spec]
+  end
+
+  map[kernel_spec] = nil
+
+  -- Recover kernels that were initialized manually.
+  for _, kernel_id in ipairs(running) do
+    if kernel_id_matches_spec(kernel_id, kernel_spec) then
+      map[kernel_spec] = kernel_id
+
+      return kernel_id
+    end
+  end
+
+  return nil
+end
+
+-- ============================================================================
+-- PYTHON ENVIRONMENT DETECTION
+-- ============================================================================
+local function python_kernel()
+  local kernels = available_kernels()
+
+  local env = vim.env.VIRTUAL_ENV or vim.env.CONDA_PREFIX
+
+  if env and env ~= '' then
+    local env_name = vim.fn.fnamemodify(env, ':t')
+
+    if contains(kernels, env_name) then
+      return env_name
+    end
+  end
+
+  return PYTHON_FALLBACK_KERNEL
+end
+
+-- ============================================================================
+-- LANGUAGE -> KERNEL ROUTING
+-- ============================================================================
+
+local function kernel_for_language(lang)
+  if lang == 'r' then
+    return R_KERNEL
+  end
+
+  if lang == 'python' then
+    return python_kernel()
+  end
+
+  if lang == 'bash' or lang == 'sh' then
+    return BASH_KERNEL
+  end
+
+  return nil
+end
+
+-- ============================================================================
+-- INITIALIZE ONE KERNEL
+-- ============================================================================
+
+local function init_kernel(kernel_spec)
+  if not contains(available_kernels(), kernel_spec) then
+    vim.notify(("Jupyter kernel '%s' is not installed."):format(kernel_spec), vim.log.levels.WARN)
+
+    return nil
+  end
+
+  -- Already attached to this buffer.
+  local existing = find_local_kernel_id(kernel_spec)
+
+  if existing then
+    return existing
+  end
+
+  local before = local_running_kernels()
+
+  -- Clear stale readiness information for old kernels with the same
+  -- kernelspec that are no longer running.
+  for kernel_id, _ in pairs(ready_kernels) do
+    if kernel_id_matches_spec(kernel_id, kernel_spec) and not contains(before, kernel_id) then
+      ready_kernels[kernel_id] = nil
+      starting_kernels[kernel_id] = nil
+      kernel_waiters[kernel_id] = nil
+    end
+  end
+
+  -- Start the Jupyter kernel.
+  vim.cmd('MoltenInit ' .. kernel_spec)
+
+  local after = local_running_kernels()
+
+  local map = kernel_map()
+
+  -- Find the newly-created Molten kernel ID.
+  for _, kernel_id in ipairs(after) do
+    if not contains(before, kernel_id) then
+      map[kernel_spec] = kernel_id
+
+      -- If MoltenKernelReady somehow already fired during MoltenInit,
+      -- do not overwrite that ready state.
+      if not ready_kernels[kernel_id] then
+        starting_kernels[kernel_id] = true
+      end
+
+      return kernel_id
+    end
+  end
+
+  -- Fallback in case Molten reused something unexpectedly.
+  local recovered = find_local_kernel_id(kernel_spec)
+
+  if recovered then
+    return recovered
+  end
+
+  vim.notify(("Molten could not initialize kernel '%s'."):format(kernel_spec), vim.log.levels.ERROR)
+
+  return nil
+end
+
+local function init_quarto_kernels() -- not really needed, but can be useful
+  local specs = {
+    R_KERNEL,
+    python_kernel(),
+    BASH_KERNEL,
+  }
+
+  local seen = {}
+
+  for _, kernel_spec in ipairs(specs) do
+    if kernel_spec and not seen[kernel_spec] then
+      init_kernel(kernel_spec)
+      seen[kernel_spec] = true
+    end
+  end
+
+  vim.notify('Quarto kernels starting/attached.', vim.log.levels.INFO)
+end
+
+-- ============================================================================
+-- GET / START THE CORRECT KERNEL
+-- ============================================================================
+-- callback(kernel_id) is called:
+--
+--   immediately  -> if kernel is ready
+--   later        -> if kernel must first finish starting
+-- ============================================================================
+
+local function with_kernel_for_language(lang, callback)
+  local kernel_spec = kernel_for_language(lang)
+
+  if not kernel_spec then
+    vim.notify(("No Molten kernel configured for '%s'."):format(lang or 'unknown'), vim.log.levels.ERROR)
+
+    return
+  end
+
+  local kernel_id = find_local_kernel_id(kernel_spec)
+
+  -- Auto-initialize on first use.
+  if not kernel_id then
+    kernel_id = init_kernel(kernel_spec)
+  end
+
+  if not kernel_id then
+    return
+  end
+
+  -- Execute immediately if ready, otherwise queue until
+  -- MoltenKernelReady.
+  when_kernel_ready(kernel_id, callback)
+end
+
+local function molten_quarto_runner(cell, _ignore_cols)
+  -- Capture the cell location BEFORE waiting for the kernel.
+  -- This means you can move your cursor while the kernel is starting
+  -- and Molten still executes the originally-requested chunk.
+  local first_line = cell.range.from[1] + 1
+
+  local last_line = cell.range.to[1]
+
+  if last_line < first_line then
+    last_line = first_line
+  end
+
+  with_kernel_for_language(cell.lang, function(kernel_id)
+    vim.fn.MoltenEvaluateRange(kernel_id, first_line, last_line)
+  end)
+end
+
+-- ============================================================================
+-- PLUGINS
+-- ============================================================================
+
 return {
-
-  { -- requires plugins in lua/plugins/treesitter.lua and lua/plugins/lsp.lua
-    -- for complete functionality (language features)
-    'quarto-dev/quarto-nvim',
-    dev = false,
-    opts = {
-      lspFeatures = {
-        enabled = true,
-        chunks = 'curly',
-      },
-      codeRunner = {
-        enabled = true,
-        default_method = 'slime',
-      },
-    },
-    dependencies = {
-      -- for language features in code cells
-      -- configured in lua/plugins/lsp.lua
-      'jmbuhr/otter.nvim',
-    },
-    config = function(_, opts)
-      require('quarto').setup(opts)
-
-      vim.api.nvim_create_autocmd('FileType', {
-        pattern = 'quarto',
-        callback = function()
-          pcall(vim.cmd.QuartoActivate)
-          pcall(require('otter').activate)
-        end,
-      })
-    end,
-  },
-
-  { -- directly open ipynb files as quarto docuements
-    -- and convert back behind the scenes
-    'GCBallesteros/jupytext.nvim',
-    opts = {
-      custom_language_formatting = {
-        python = {
-          extension = 'qmd',
-          style = 'quarto',
-          force_ft = 'quarto',
-        },
-        r = {
-          extension = 'qmd',
-          style = 'quarto',
-          force_ft = 'quarto',
-        },
-      },
-    },
-  },
-
-  { -- send code from python/r/qmd documets to a terminal or REPL
-    -- like ipython, R, bash
-    'jpalardy/vim-slime',
-    dev = false,
-    init = function()
-      vim.b['quarto_is_python_chunk'] = false
-      Quarto_is_in_python_chunk = function()
-        require('otter.tools.functions').is_otter_language_context 'python'
-      end
-
-      vim.cmd [[
-      let g:slime_dispatch_ipython_pause = 100
-      function SlimeOverride_EscapeText_quarto(text)
-      call v:lua.Quarto_is_in_python_chunk()
-      if exists('g:slime_python_ipython') && len(split(a:text,"\n")) > 1 && b:quarto_is_python_chunk && !(exists('b:quarto_is_r_mode') && b:quarto_is_r_mode)
-      return ["%cpaste -q\n", g:slime_dispatch_ipython_pause, a:text, "--", "\n"]
-      else
-      if exists('b:quarto_is_r_mode') && b:quarto_is_r_mode && b:quarto_is_python_chunk
-      return [a:text, "\n"]
-      else
-      return [a:text]
-      end
-      end
-      endfunction
-      ]]
-
-      vim.g.slime_target = 'neovim'
-      vim.g.slime_no_mappings = true
-      vim.g.slime_python_ipython = 1
-    end,
-    config = function()
-      vim.g.slime_input_pid = false
-      vim.g.slime_suggest_default = true
-      vim.g.slime_menu_config = false
-      vim.g.slime_neovim_ignore_unlisted = true
-
-      local function mark_terminal()
-        local job_id = vim.b.terminal_job_id
-        vim.print('job_id: ' .. job_id)
-      end
-
-      local function set_terminal()
-        vim.fn.call('slime#config', {})
-      end
-      vim.keymap.set('n', '<leader>cm', mark_terminal, { desc = '[m]ark terminal' })
-      vim.keymap.set('n', '<leader>cs', set_terminal, { desc = '[s]et terminal' })
-      vim.keymap.set('n', '<leader>Qtm', mark_terminal, { desc = 'Quarto: [m]ark terminal' })
-      vim.keymap.set('n', '<leader>Qts', set_terminal, { desc = 'Quarto: [s]et terminal' })
-    end,
-  },
-
-  { -- paste an image from the clipboard or drag-and-drop
-    'HakonHarnes/img-clip.nvim',
-    event = 'BufEnter',
-    ft = { 'markdown', 'quarto', 'latex' },
-    opts = {
-      default = {
-        dir_path = 'img',
-        drag_and_drop = {
-          enabled = false,
-          insert_mode = false,
-        },
-      },
-      filetypes = {
-        markdown = {
-          url_encode_path = true,
-          template = '![$CURSOR]($FILE_PATH)',
-          drag_and_drop = {
-            download_images = false,
-          },
-        },
-        quarto = {
-          url_encode_path = true,
-          template = '![$CURSOR]($FILE_PATH)',
-          drag_and_drop = {
-            download_images = false,
-          },
-        },
-      },
-    },
-    config = function(_, opts)
-      require('img-clip').setup(opts)
-      vim.keymap.set('n', '<leader>ii', ':PasteImage<cr>', { desc = 'insert [i]mage from clipboard' })
-    end,
-  },
-
-  { -- preview equations
-    'jbyuki/nabla.nvim',
-    keys = {
-      { '<leader>qm', ':lua require"nabla".toggle_virt()<cr>', desc = 'toggle [m]ath equations' },
-    },
-  },
 
   {
     'benlubas/molten-nvim',
-    dev = false,
-    enabled = false,
-    version = '^1.0.0', -- use version <2.0.0 to avoid breaking changes
+
+    lazy = false,
+
+    version = '^1.0.0',
+
     build = ':UpdateRemotePlugins',
+
+    dependencies = {
+      {
+        '3rd/image.nvim',
+
+        build = false,
+
+        opts = {
+          processor = 'magick_cli',
+        },
+      },
+    },
+
     init = function()
       vim.g.molten_image_provider = 'image.nvim'
-      -- vim.g.molten_output_win_max_height = 20
-      vim.g.molten_auto_open_output = true
+      vim.g.molten_auto_open_output = false
+      vim.g.molten_virt_text_output = true
+      vim.g.molten_virt_lines_off_by_1 = true
+      vim.g.molten_wrap_output = true
+      vim.g.molten_auto_init_behavior = 'raise'
       vim.g.molten_auto_open_html_in_browser = true
       vim.g.molten_tick_rate = 200
-    end,
-    config = function()
-      local init = function()
-        local quarto_cfg = require('quarto.config').config
-        quarto_cfg.codeRunner.default_method = 'molten'
-        vim.cmd [[MoltenInit]]
-      end
-      local deinit = function()
-        local quarto_cfg = require('quarto.config').config
-        quarto_cfg.codeRunner.default_method = 'slime'
-        vim.cmd [[MoltenDeinit]]
-      end
-      vim.keymap.set('n', '<localleader>mi', init, { silent = true, desc = 'Initialize molten' })
-      vim.keymap.set('n', '<localleader>md', deinit, { silent = true, desc = 'Stop molten' })
-      vim.keymap.set('n', '<localleader>mp', ':MoltenImagePopup<CR>', { silent = true, desc = 'molten image popup' })
-      vim.keymap.set('n', '<localleader>mb', ':MoltenOpenInBrowser<CR>', { silent = true, desc = 'molten open in browser' })
-      vim.keymap.set('n', '<localleader>mh', ':MoltenHideOutput<CR>', { silent = true, desc = 'hide output' })
-      vim.keymap.set('n', '<localleader>ms', ':noautocmd MoltenEnterOutput<CR>', { silent = true, desc = 'show/enter output' })
     end,
   },
 
   {
-    'quarto-keymaps',
-    dir = vim.fn.stdpath 'config',
-    lazy = false,
-    config = function()
-      vim.g['quarto_is_r_mode'] = nil
-      vim.g['reticulate_running'] = false
+    'quarto-dev/quarto-nvim',
+
+    dependencies = {
+      'jmbuhr/otter.nvim',
+      'benlubas/molten-nvim',
+    },
+
+    opts = {
+      lspFeatures = {
+        enabled = true,
+
+        chunks = 'all',
+
+        languages = {
+          'r',
+          'python',
+          'bash',
+        },
+      },
+
+      codeRunner = {
+        enabled = true,
+
+        -- Everything runs through our language-aware Molten runner.
+        default_method = molten_quarto_runner,
+
+        never_run = {
+          'yaml',
+        },
+      },
+    },
+
+    config = function(_, opts)
+      require('quarto').setup(opts)
+
+      local runner = require 'quarto.runner'
 
       local function map(mode, lhs, rhs, desc)
-        vim.keymap.set(mode, lhs, rhs, { silent = true, noremap = true, desc = desc })
+        vim.keymap.set(mode, lhs, rhs, {
+          silent = true,
+          noremap = true,
+          desc = desc,
+        })
       end
 
-      local function send_cell()
-        local has_molten, molten_status = pcall(require, 'molten.status')
-        local molten_works = false
-        local molten_active = ''
-        if has_molten then
-          molten_works, molten_active = pcall(molten_status.kernels)
-        end
-        if molten_works and molten_active ~= vim.NIL and molten_active ~= '' then
-          molten_active = molten_status.initialized()
-        end
-        if molten_active ~= vim.NIL and molten_active ~= '' and molten_status.kernels() ~= 'Molten' then
-          vim.cmd.QuartoSend()
-          return
-        end
+      -- ======================================================================
+      -- KEYMAPS: RUN CODE
+      -- ======================================================================
+      map('n', '<leader>Qrr', runner.run_cell, 'Quarto: run current cell')
 
-        if vim.b['quarto_is_r_mode'] == nil then
-          vim.fn['slime#send_cell']()
-          return
-        end
-        if vim.b['quarto_is_r_mode'] == true then
-          vim.g.slime_python_ipython = 0
-          local is_python = require('otter.tools.functions').is_otter_language_context 'python'
-          if is_python and not vim.b['reticulate_running'] then
-            vim.fn['slime#send']('reticulate::repl_python()' .. '\r')
-            vim.b['reticulate_running'] = true
-          end
-          if not is_python and vim.b['reticulate_running'] then
-            vim.fn['slime#send']('exit' .. '\r')
-            vim.b['reticulate_running'] = false
-          end
-          vim.fn['slime#send_cell']()
-        end
-      end
+      map('n', '<leader>Qra', function()
+        runner.run_all(true)
+      end, 'Quarto: run all cells')
 
-      local slime_send_region_cmd = ':<C-u>call slime#send_op(visualmode(), 1)<CR>'
-      slime_send_region_cmd = vim.api.nvim_replace_termcodes(slime_send_region_cmd, true, false, true)
+      map('n', '<leader>Qrb', function()
+        runner.run_below(true)
+      end, 'Quarto: run current cell and below')
 
-      local function send_region()
-        if vim.bo.filetype ~= 'quarto' or vim.b['quarto_is_r_mode'] == nil then
-          vim.cmd('normal' .. slime_send_region_cmd)
-          return
-        end
-        if vim.b['quarto_is_r_mode'] == true then
-          vim.g.slime_python_ipython = 0
-          local is_python = require('otter.tools.functions').is_otter_language_context 'python'
-          if is_python and not vim.b['reticulate_running'] then
-            vim.fn['slime#send']('reticulate::repl_python()' .. '\r')
-            vim.b['reticulate_running'] = true
-          end
-          if not is_python and vim.b['reticulate_running'] then
-            vim.fn['slime#send']('exit' .. '\r')
-            vim.b['reticulate_running'] = false
-          end
-          vim.cmd('normal' .. slime_send_region_cmd)
-        end
-      end
+      map('n', '<leader>Qru', function()
+        runner.run_above(true)
+      end, 'Quarto: run through current cell')
+
+      map('n', '<leader>Qrl', runner.run_line, 'Quarto: run current line')
+      map('v', '<leader>Qrv', runner.run_range, 'Quarto: run visual selection')
+
+      -- ======================================================================
+      -- KEYMAPS: MOLTEN / KERNEL MANAGEMENT
+      -- ======================================================================
+      map('n', '<leader>Qmi', init_quarto_kernels, 'Molten: preload R/Python/Bash')
+
+      map('n', '<leader>QmI', ':MoltenInit<CR>', 'Molten: initialize kernel manually')
+
+      map('n', '<leader>Qmd', ':MoltenDeinit<CR>', 'Molten: deinitialize')
+
+      map('n', '<leader>Qmf', ':MoltenInfo<CR>', 'Molten: info')
+
+      map('n', '<leader>Qmh', ':MoltenHideOutput<CR>', 'Molten: hide output')
+
+      map('n', '<leader>Qmo', ':noautocmd MoltenEnterOutput<CR>', 'Molten: enter output')
+
+      map('n', '<leader>Qmp', ':MoltenImagePopup<CR>', 'Molten: image popup')
+
+      map('n', '<leader>Qmx', ':MoltenDelete<CR>', 'Molten: delete cell/output')
+
+      -- ======================================================================
+      -- KEYMAPS: QUARTO
+      -- ======================================================================
+      map('n', '<leader>Qa', ':QuartoActivate<CR>', 'Quarto: activate')
+
+      map('n', '<leader>Qp', require('quarto').quartoPreview, 'Quarto: preview')
+
+      map('n', '<leader>Qu', require('quarto').quartoUpdatePreview, 'Quarto: update preview')
+
+      map('n', '<leader>Qq', require('quarto').quartoClosePreview, 'Quarto: close preview')
+
+      map('n', '<leader>Qh', ':QuartoHelp ', 'Quarto: help')
+
+      map('n', '<leader>Qe', require('otter').export, 'Quarto: export')
+
+      map('n', '<leader>QE', function()
+        require('otter').export(true)
+      end, 'Quarto: export with overwrite')
+
+      -- ======================================================================
+      -- CODE CHUNK INSERTION
+      -- ======================================================================
 
       local function is_code_chunk(lang)
         return require('otter.keeper').get_current_language_context() == lang
       end
 
-      local function insert_a_code_chunk(lang, curly)
+      local function insert_code_chunk(lang)
         vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<esc>', true, false, true), 'n', true)
+
         local keys
-        if curly == nil then
-          curly = true
-        end
+
         if is_code_chunk(lang) then
-          if curly then
-            keys = [[o```<cr><cr>```{]] .. lang .. [[}<esc>o]]
-          else
-            keys = [[o```<cr><cr>```]] .. lang .. [[<esc>o]]
-          end
+          keys = [[o```<cr><cr>```{]] .. lang .. [[}<esc>o]]
         else
-          if curly then
-            keys = [[o```{]] .. lang .. [[}<cr>```<esc>O]]
-          else
-            keys = [[o```]] .. lang .. [[<cr>```<esc>O]]
-          end
+          keys = [[o```{]] .. lang .. [[}<cr>```<esc>O]]
         end
+
         keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
+
         vim.api.nvim_feedkeys(keys, 'n', false)
       end
 
-      local function insert_code_chunk(lang)
-        insert_a_code_chunk(lang, true)
-      end
-
-      local function insert_plain_code_chunk(lang)
-        insert_a_code_chunk(lang, false)
-      end
-
-      local function new_terminal(lang)
-        vim.cmd('vsplit term://' .. lang)
-      end
-
-      local function get_otter_symbols_lang()
-        local otterkeeper = require 'otter.keeper'
-        local main_nr = vim.api.nvim_get_current_buf()
-        local langs = {}
-        for i, l in ipairs(otterkeeper.rafts[main_nr].languages) do
-          langs[i] = i .. ': ' .. l
-        end
-        local i = vim.fn.inputlist(langs)
-        local lang = otterkeeper.rafts[main_nr].languages[i]
-        local params = {
-          textDocument = vim.lsp.util.make_text_document_params(),
-          otter = { lang = lang },
-        }
-        vim.lsp.buf_request(main_nr, vim.lsp.protocol.Methods.textDocument_documentSymbol, params, nil)
-      end
-
-      local function show_r_table()
-        local node = vim.treesitter.get_node { ignore_injections = false }
-        assert(node, 'no symbol found under cursor')
-        local text = vim.treesitter.get_node_text(node, 0)
-        vim.cmd([[call slime#send("DT::datatable(]] .. text .. [[)" . "\r")]])
-      end
-
-      map('n', '<leader>Q<CR>', send_cell, 'Quarto: run code cell')
-      map({ 'n', 'i' }, '<C-CR>', send_cell, 'Quarto: run code cell')
-      map('v', '<CR>', send_region, 'Quarto: run code region')
-
-      map('n', '<leader>Qa', ':QuartoActivate<CR>', 'Quarto: activate')
-      map('n', '<leader>Qe', require('otter').export, 'Quarto: export')
-      map('n', '<leader>QE', function()
-        require('otter').export(true)
-      end, 'Quarto: export with overwrite')
-      map('n', '<leader>Qh', ':QuartoHelp ', 'Quarto: help')
-      map('n', '<leader>Qp', function()
-        require('quarto').quartoPreview()
-      end, 'Quarto: preview')
-      map('n', '<leader>Qu', function()
-        require('quarto').quartoUpdatePreview()
-      end, 'Quarto: update preview')
-      map('n', '<leader>Qq', function()
-        require('quarto').quartoClosePreview()
-      end, 'Quarto: close preview')
-
-      map('n', '<leader>Qra', ':QuartoSendAll<CR>', 'Quarto: run all')
-      map('n', '<leader>Qrb', ':QuartoSendBelow<CR>', 'Quarto: run below')
-      map('n', '<leader>Qrr', ':QuartoSendAbove<CR>', 'Quarto: run to cursor')
-
-      map('n', '<leader>Qoa', require('otter').activate, 'Quarto: otter activate')
-      map('n', '<leader>Qod', require('otter').deactivate, 'Quarto: otter deactivate')
-      map('n', '<leader>Qos', get_otter_symbols_lang, 'Quarto: otter symbols')
-
+      -- ======================================================================
+      -- KEYMAPS: INSERT CODE CHUNKS
+      -- ======================================================================
       map('n', '<leader>Qcr', function()
         insert_code_chunk 'r'
-      end, 'Quarto: R code chunk')
+      end, 'Quarto: insert R chunk')
+
       map('n', '<leader>Qcp', function()
         insert_code_chunk 'python'
-      end, 'Quarto: Python code chunk')
-      map('n', '<leader>Qcl', function()
-        insert_code_chunk 'lua'
-      end, 'Quarto: Lua code chunk')
-      map('n', '<leader>Qcj', function()
-        insert_code_chunk 'julia'
-      end, 'Quarto: Julia code chunk')
+      end, 'Quarto: insert Python chunk')
+
       map('n', '<leader>Qcb', function()
         insert_code_chunk 'bash'
-      end, 'Quarto: Bash code chunk')
-      map('n', '<leader>Qco', function()
-        insert_code_chunk 'ojs'
-      end, 'Quarto: OJS code chunk')
-
-      map('n', '<leader>QCr', function()
-        insert_plain_code_chunk 'r'
-      end, 'Quarto: plain R code chunk')
-      map('n', '<leader>QCp', function()
-        insert_plain_code_chunk 'python'
-      end, 'Quarto: plain Python code chunk')
-      map('n', '<leader>QCl', function()
-        insert_plain_code_chunk 'lua'
-      end, 'Quarto: plain Lua code chunk')
-      map('n', '<leader>QCj', function()
-        insert_plain_code_chunk 'julia'
-      end, 'Quarto: plain Julia code chunk')
-      map('n', '<leader>QCb', function()
-        insert_plain_code_chunk 'bash'
-      end, 'Quarto: plain Bash code chunk')
-      map('n', '<leader>QCo', function()
-        insert_plain_code_chunk 'ojs'
-      end, 'Quarto: plain OJS code chunk')
-
-      map('n', '<leader>Qti', function()
-        new_terminal 'ipython --no-confirm-exit --no-autoindent'
-      end, 'Quarto: new IPython terminal')
-      map('n', '<leader>Qtp', function()
-        new_terminal 'python'
-      end, 'Quarto: new Python terminal')
-      map('n', '<leader>Qtr', function()
-        new_terminal 'R --no-save'
-      end, 'Quarto: new R terminal')
-      map('n', '<leader>Qtj', function()
-        new_terminal 'julia'
-      end, 'Quarto: new Julia terminal')
-      map('n', '<leader>Qtn', function()
-        new_terminal '$SHELL'
-      end, 'Quarto: new shell terminal')
-
-      map('n', '<leader>Qrt', show_r_table, 'Quarto: show R table')
+      end, 'Quarto: insert Bash chunk')
     end,
+  },
+  -- ==========================================================================
+  -- IMAGE PASTE
+  -- ==========================================================================
+
+  {
+    'HakonHarnes/img-clip.nvim',
+
+    event = 'BufEnter',
+
+    ft = {
+      'markdown',
+      'quarto',
+      'latex',
+    },
+
+    opts = {
+      default = {
+        dir_path = 'img',
+
+        drag_and_drop = {
+          enabled = false,
+          insert_mode = false,
+        },
+      },
+
+      filetypes = {
+        markdown = {
+          url_encode_path = true,
+
+          template = '![$CURSOR]($FILE_PATH)',
+
+          drag_and_drop = {
+            download_images = false,
+          },
+        },
+
+        quarto = {
+          url_encode_path = true,
+
+          template = '![$CURSOR]($FILE_PATH)',
+
+          drag_and_drop = {
+            download_images = false,
+          },
+        },
+      },
+    },
+
+    config = function(_, opts)
+      require('img-clip').setup(opts)
+
+      vim.keymap.set('n', '<leader>ii', ':PasteImage<CR>', {
+        desc = 'Insert image from clipboard',
+      })
+    end,
+  },
+
+  -- ==========================================================================
+  -- EQUATION PREVIEW
+  -- ==========================================================================
+
+  {
+    'jbyuki/nabla.nvim',
+
+    keys = {
+      {
+        '<leader>qm',
+
+        ':lua require("nabla").toggle_virt()<CR>',
+
+        desc = 'Toggle math equations',
+      },
+    },
   },
 }
