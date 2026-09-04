@@ -10,6 +10,7 @@ return {
         python = { 'ruff' },
         bash = { 'shellcheck' },
         terraform = { 'terraform_validate' },
+        sh = { 'shellcheck' },
         tf = { 'terraform_validate' },
         fish = { 'fish' },
         dockerfile = { 'hadolint' },
