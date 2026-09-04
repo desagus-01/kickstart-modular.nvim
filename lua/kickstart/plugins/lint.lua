@@ -8,6 +8,7 @@ return {
       lint.linters_by_ft = {
         -- markdown = { 'markdownlint' },
         python = { 'ruff' },
+        bash = { 'shellcheck' },
         terraform = { 'terraform_validate' },
         tf = { 'terraform_validate' },
         fish = { 'fish' },
