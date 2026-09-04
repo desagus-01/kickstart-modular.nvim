@@ -426,13 +426,15 @@ return {
     opts = {
       lspFeatures = {
         enabled = true,
-
         chunks = 'all',
-
         languages = {
           'r',
           'python',
           'bash',
+        },
+        diagnostics = {
+          enabled = true,
+          triggers = { 'BufWritePost', 'InsertLeave' },
         },
       },
 

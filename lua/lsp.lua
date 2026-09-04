@@ -120,6 +120,7 @@ vim.lsp.enable {
   'lua_ls',
   'rust_analyzer',
   'pyrefly',
+  'ruff',
   -- 'zls',
   'terraformls',
   -- 'dockerls',
