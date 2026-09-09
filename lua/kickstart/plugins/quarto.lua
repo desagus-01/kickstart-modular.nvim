@@ -6,6 +6,7 @@ local BASH_KERNEL = 'bash'
 local PYTHON_FALLBACK_KERNEL = 'python3'
 
 local kernel_ids_by_buf = {}
+local python_kernel_by_buf = {}
 
 -- Kernel lifecycle state.
 -- MoltenInit creates the kernel, but the Jupyter kernel may not yet be ready
@@ -101,8 +102,18 @@ vim.api.nvim_create_autocmd('BufWipeout', {
 
   callback = function(event)
     kernel_ids_by_buf[event.buf] = nil
+    python_kernel_by_buf[event.buf] = nil
   end,
 })
+
+local function set_python_kernel(kernel_spec)
+  local buf = vim.api.nvim_get_current_buf()
+
+  python_kernel_by_buf[buf] = kernel_spec
+  kernel_map()[kernel_spec] = nil
+
+  vim.notify(("Quarto Python kernel set to '%s' for this buffer."):format(kernel_spec), vim.log.levels.INFO)
+end
 
 local function when_kernel_ready(kernel_id, callback)
   -- Kernel is already confirmed ready.
@@ -172,6 +183,12 @@ end
 -- PYTHON ENVIRONMENT DETECTION
 -- ============================================================================
 local function python_kernel()
+  local selected = python_kernel_by_buf[vim.api.nvim_get_current_buf()]
+
+  if selected and selected ~= '' then
+    return selected
+  end
+
   local kernels = available_kernels()
 
   local env = vim.env.VIRTUAL_ENV or vim.env.CONDA_PREFIX
@@ -288,6 +305,151 @@ local function init_quarto_kernels() -- not really needed, but can be useful
   end
 
   vim.notify('Quarto kernels starting/attached.', vim.log.levels.INFO)
+end
+
+local function select_python_kernel()
+  local kernels = available_kernels()
+
+  if vim.tbl_isempty(kernels) then
+    vim.notify('No Jupyter kernels available.', vim.log.levels.WARN)
+    return
+  end
+
+  vim.ui.select(kernels, {
+    prompt = 'Python kernel for this Quarto buffer:',
+  }, function(kernel_spec)
+    if not kernel_spec then
+      return
+    end
+
+    set_python_kernel(kernel_spec)
+    init_kernel(kernel_spec)
+  end)
+end
+
+local function create_python_env_for_quarto()
+  local cwd = vim.fn.getcwd()
+  local default_path = cwd .. '/.venv'
+
+  vim.ui.input({
+    prompt = 'Python venv path: ',
+    default = default_path,
+    completion = 'dir',
+  }, function(env_path)
+    if not env_path or env_path == '' then
+      return
+    end
+
+    env_path = vim.fn.fnamemodify(env_path, ':p')
+    local default_name = vim.fn.fnamemodify(env_path, ':t')
+
+    vim.ui.input({
+      prompt = 'Jupyter kernel name: ',
+      default = default_name,
+    }, function(kernel_name)
+      if not kernel_name or kernel_name == '' then
+        return
+      end
+
+      local uv = vim.fn.exepath 'uv'
+      local python = vim.fn.exepath 'python3'
+
+      if python == '' then
+        python = vim.fn.exepath 'python'
+      end
+
+      if uv == '' and python == '' then
+        vim.notify('Could not find uv, python3, or python on PATH.', vim.log.levels.ERROR)
+        return
+      end
+
+      local venv_python = env_path .. '/bin/python'
+      local display_name = 'Python (' .. kernel_name .. ')'
+
+      local function install_kernel()
+        vim.schedule(function()
+          vim.notify('Installing ipykernel...', vim.log.levels.INFO)
+        end)
+
+        local install_cmd
+
+        if uv ~= '' then
+          install_cmd = { uv, 'pip', 'install', '--python', venv_python, 'ipykernel' }
+        else
+          install_cmd = { venv_python, '-m', 'pip', 'install', '--upgrade', 'pip', 'ipykernel' }
+        end
+
+        vim.system(install_cmd, { text = true }, function(pip_result)
+          if pip_result.code ~= 0 then
+            vim.schedule(function()
+              vim.notify(('ipykernel install failed: %s'):format(pip_result.stderr), vim.log.levels.ERROR)
+            end)
+
+            return
+          end
+
+          vim.system({
+            venv_python,
+            '-m',
+            'ipykernel',
+            'install',
+            '--user',
+            '--name',
+            kernel_name,
+            '--display-name',
+            display_name,
+          }, { text = true }, function(kernel_result)
+            vim.schedule(function()
+              if kernel_result.code ~= 0 then
+                vim.notify(('Jupyter kernel install failed: %s'):format(kernel_result.stderr), vim.log.levels.ERROR)
+                return
+              end
+
+              set_python_kernel(kernel_name)
+              init_kernel(kernel_name)
+              vim.notify(("Python env ready; Quarto will use kernel '%s'."):format(kernel_name), vim.log.levels.INFO)
+            end)
+          end)
+        end)
+      end
+
+      if vim.fn.executable(venv_python) == 1 then
+        vim.notify(("Using existing Python env '%s'."):format(env_path), vim.log.levels.INFO)
+        install_kernel()
+        return
+      end
+
+      if vim.fn.isdirectory(env_path) == 1 then
+        vim.notify(("'%s' exists but is not a valid venv. Delete it or choose another path."):format(env_path), vim.log.levels.ERROR)
+        return
+      end
+
+      vim.notify(("Creating Python env '%s'..."):format(env_path), vim.log.levels.INFO)
+
+      local create_cmd
+
+      if uv ~= '' then
+        create_cmd = { uv, 'venv', env_path }
+      else
+        create_cmd = { python, '-m', 'venv', env_path }
+      end
+
+      vim.system(create_cmd, { text = true }, function(venv_result)
+        if venv_result.code ~= 0 then
+          vim.schedule(function()
+            vim.notify(
+              ('venv creation failed: %s\nDelete any partial env, choose another path, or install uv/python venv support.'):format(venv_result.stderr),
+              vim.log.levels.ERROR
+            )
+          end)
+
+          return
+        end
+
+        install_kernel()
+      end)
+    end)
+  end)
 end
 
 -- ============================================================================
@@ -554,6 +716,10 @@ return {
       map('n', '<leader>Qmi', init_quarto_kernels, 'Molten: preload R/Python/Bash')
 
       map('n', '<leader>QmI', ':MoltenInit<CR>', 'Molten: initialize kernel manually')
+
+      map('n', '<leader>Qms', select_python_kernel, 'Molten: select Python kernel')
+
+      map('n', '<leader>Qmv', create_python_env_for_quarto, 'Molten: create Python venv')
 
       map('n', '<leader>Qmd', ':MoltenDeinit<CR>', 'Molten: deinitialize')
 
