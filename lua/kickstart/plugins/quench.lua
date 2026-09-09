@@ -1,6 +1,5 @@
 return {
   'ryan-ressmeyer/quench.nvim',
-  ft = 'python',
 
   init = function()
     vim.g.quench_nvim_web_server_host = '127.0.0.1'
