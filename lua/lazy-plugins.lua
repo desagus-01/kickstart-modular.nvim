@@ -11,6 +11,7 @@ require('lazy').setup({
   require 'kickstart.plugins.copilot',
   require 'kickstart.plugins.blink-cmp',
   require 'kickstart.plugins.code-companion',
+  require 'kickstart.plugins.pi',
   require 'kickstart.plugins.render-markdown',
   require 'kickstart.plugins.snacks',
   require 'kickstart.plugins.gitsigns',

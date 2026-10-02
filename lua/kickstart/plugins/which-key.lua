@@ -43,6 +43,7 @@ return {
       spec = {
         { '<leader>s', group = '[S]earch' },
         { '<leader>c', group = '[C]odeCompanion' },
+        { '<leader>a', group = '[A]gent (Pi)', mode = { 'n', 'v' } },
         { '<leader>q', group = '[Q]uick Actions' },
         { '<leader>o', group = 'T[O]DO' },
         { '<leader>t', group = '[T]oggle' },
