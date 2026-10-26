@@ -1,0 +1,4 @@
+#!/bin/sh
+# Neovim's SCF Python host: use the existing 3.12 Jupyter stack and system pynvim.
+PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}" \
+  exec /usr/local/linux/miniforge-3.12/bin/python3 "$@"

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Launch remote Neovim with a localhost-only Quarto preview forwarded to the laptop.
+set -euo pipefail
+
+port=46131
+default_path=/accounts/masters/desagus/desagus
+if (( $# > 1 )) || { (( $# == 1 )) && [[ -z $1 ]]; }; then
+  printf 'Usage: gq [REMOTE_DIRECTORY_OR_FILE] (default: %s)\n' "$default_path" >&2
+  exit 2
+fi
+if (( $# == 1 )) && [[ $1 == --help || $1 == -h ]]; then
+  printf 'Usage: gq [REMOTE_DIRECTORY_OR_FILE] (default: %s)\n' "$default_path"
+  exit 0
+fi
+remote_path=${1:-$default_path}
+
+if ss -H -ltn "( sport = :$port )" | grep -q .; then
+  printf 'Local port %s is in use; close the other preview before running gq.\n' "$port" >&2
+  exit 1
+fi
+
+if ! command -v xdg-open >/dev/null; then
+  printf 'No xdg-open found; open http://127.0.0.1:%s/ in your laptop browser.\n' "$port" >&2
+fi
+
+# Quote the remote path twice: once for bash -lc, then for the SSH remote shell.
+# Directories become the working directory, so file pickers start in the right project.
+printf -v remote_command 'export QUARTO_REMOTE_PREVIEW_PORT=%q; if [[ -d %q ]]; then cd -- %q && exec nvim .; else exec nvim -- %q; fi' \
+  "$port" "$remote_path" "$remote_path" "$remote_path"
+printf -v login_command '%q' "$remote_command"
+
+watch_preview() {
+  # Probing the local forward before Quarto starts makes SSH print a channel
+  # "connection refused" error for every attempt. Wait for the remote listener
+  # instead, then open the laptop browser only once.
+  ssh -q -o BatchMode=yes -o ConnectTimeout=5 gandalf \
+    "until ss -H -ltn '( sport = :$port )' | grep -q .; do sleep 1; done" &
+  local poller=$!
+  trap 'kill "$poller" 2>/dev/null || true' EXIT
+  if ! wait "$poller"; then
+    return
+  fi
+  if command -v xdg-open >/dev/null; then
+    xdg-open "http://127.0.0.1:$port/" >/dev/null 2>&1 || true
+  fi
+}
+
+watch_preview &
+watcher=$!
+trap 'kill "$watcher" 2>/dev/null || true' EXIT
+
+ssh -tt -o ExitOnForwardFailure=yes \
+  -L "127.0.0.1:$port:127.0.0.1:$port" gandalf "bash -lc $login_command"

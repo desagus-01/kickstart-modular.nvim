@@ -10,6 +10,7 @@ return {
     'markdown',
     'codecompanion',
     'quarto',
+    'pi-chat-history',
   },
 
   -- ========================================================================
@@ -54,7 +55,7 @@ return {
 
     code = {
       enabled = true,
-      conceal_delimiters = true,
+      conceal_delimiters = false,
       language = true,
       language_icon = true,
       language_name = true,

@@ -20,7 +20,6 @@ return {
       { 'folke/lazydev.nvim', ft = 'lua' },
     },
 
-    -- 🔥 Important: pre-warm blink (and snippets) once after first real file opens
     init = function()
       vim.api.nvim_create_autocmd('BufReadPost', {
         group = vim.api.nvim_create_augroup('blink-warmup-once', { clear = true }),
@@ -47,8 +46,12 @@ return {
       },
       sources = {
         default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        per_filetype = {
+          ['pi-chat-prompt'] = { 'pi' },
+        },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+          pi = { name = 'Pi', module = 'pi.completion.blink' },
         },
       },
       snippets = { preset = 'luasnip' },
